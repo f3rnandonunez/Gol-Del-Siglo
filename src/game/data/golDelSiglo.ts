@@ -71,7 +71,7 @@ export const golDelSiglo: Gol = {
           texto: 'Continuar',
           correcta: true,
           resultado: 'sigue',
-          descripcionExito: 'Enrique da un pase sencillo, casi horizontal, hacia la derecha...'
+         descripcionExito: "«Se la doy al Diego». Enrique da un pase sencillo, casi horizontal, hacia la derecha..."
         }
       ]
     },
