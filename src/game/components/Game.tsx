@@ -1,9 +1,8 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import type { Gol, Opcion, Fase } from '../types';
 import { golDelSiglo } from '../data/golDelSiglo';
 import { TimingBar } from './TimingBar';
 import { DecisionOptions } from './DecisionOptions';
-import { NarrativeDisplay } from './NarrativeDisplay';
 import { GoalCelebration } from './GoalCelebration';
 import { GameOver } from './GameOver';
 
@@ -22,34 +21,39 @@ export function Game({ onBackToMenu }: GameProps) {
   const [animacionFallo, setAnimacionFallo] = useState(false);
 
   const fase: Fase = gol.fases[faseActual];
-  const [spritesListos, setSpritesListos] = useState(true);
 
-  // Iniciar la fase - se ejecuta cada vez que cambia la fase
+  // Mezclar las opciones en cada fase (para que la correcta no sea siempre la primera)
+  const opcionesMezcladas = useMemo(() => {
+    if (!fase.opciones) return [];
+    const shuffled = [...fase.opciones];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  }, [fase.opciones]);
+
+  // Iniciar la fase
   useEffect(() => {
     setEstado('decision');
     setOpcionSeleccionada(null);
     setMensajeResultado('');
     setAnimacionExito(false);
     setAnimacionFallo(false);
-    setSpritesListos(true);
-
-    // Activar timing después de un pequeño delay para permitir que el usuario vea la pantalla
+    // Activar timing después de un pequeño delay
     const timingTimeout = setTimeout(() => {
       setTimingActivo(true);
     }, 500);
-
     return () => clearTimeout(timingTimeout);
   }, [faseActual]);
-
 
   const handleTimingComplete = useCallback(() => {
     if (estado === 'decision' && !opcionSeleccionada) {
       setEstado('derrota');
-      setMensajeResultado('¡Se acabo el tiempo! La defensa recupero la pelota.');
+      setMensajeResultado('¡Se acabó el tiempo! La defensa recuperó la pelota.');
     }
   }, [estado, opcionSeleccionada]);
 
-  // Manejar seleccion de opcion
   const handleOptionSelect = useCallback((opcion: Opcion) => {
     if (!timingActivo) return;
     
@@ -59,7 +63,7 @@ export function Game({ onBackToMenu }: GameProps) {
 
     if (opcion.correcta) {
       setAnimacionExito(true);
-      setMensajeResultado(opcion.descripcionExito || '¡Excelente decision!');
+      setMensajeResultado(opcion.descripcionExito || '¡Excelente decisión!');
       
       setTimeout(() => {
         setAnimacionExito(false);
@@ -72,7 +76,7 @@ export function Game({ onBackToMenu }: GameProps) {
       }, 2500);
     } else {
       setAnimacionFallo(true);
-      setMensajeResultado(opcion.descripcionFallo || '¡Mala decision! Perdiste la pelota.');
+      setMensajeResultado(opcion.descripcionFallo || '¡Mala decisión! Perdiste la pelota.');
       setTimeout(() => {
         setAnimacionFallo(false);
         setEstado('derrota');
@@ -80,7 +84,6 @@ export function Game({ onBackToMenu }: GameProps) {
     }
   }, [timingActivo]);
 
-  // Reiniciar el juego
   const handleRetry = useCallback(() => {
     setFaseActual(0);
     setEstado('decision');
@@ -91,139 +94,120 @@ export function Game({ onBackToMenu }: GameProps) {
     setAnimacionFallo(false);
   }, []);
 
+  // Renderizado principal con layout de columnas (75% campo, 25% UI)
   return (
-    <div className="h-screen bg-gradient-to-b from-green-800 to-green-900 relative overflow-hidden flex flex-col">
-      {/* Fondo del campo */}
-      <div 
-        className="absolute inset-0 opacity-30"
-        style={{
-          backgroundImage: 'url(/sprites/campo_futbol.png)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center'
-        }}
-      />
+    <div className="h-screen flex flex-col bg-gradient-to-b from-green-800 to-green-900">
+      {/* ZONA DEL CAMPO (75% de la altura) */}
+      <div className="relative flex-3 bg-cover bg-center" style={{ flex: '3', backgroundImage: 'url(/sprites/campo_futbol.png)' }}>
+        <div className="absolute inset-0 bg-black/20" />
 
-      {/* Header con info del partido */}
-      <div className="relative z-10 bg-black/70 border-b-2 border-white px-4 py-2 flex-shrink-0">
-        <div className="max-w-full flex justify-between items-center">
-          <div className="text-white">
-            <h1 
-              className="text-lg md:text-xl font-bold text-yellow-400"
-              style={{ fontFamily: '"Press Start 2P", monospace' }}
-            >
-              {gol.titulo}
-            </h1>
+        {animacionExito && (
+          <div className="absolute inset-0 bg-green-400/30 animate-pulse pointer-events-none z-20" />
+        )}
+        {animacionFallo && (
+          <div className="absolute inset-0 bg-red-600/40 animate-pulse pointer-events-none z-20" />
+        )}
+
+        {/* SPRITES dentro del campo */}
+        {estado !== 'victoria' && estado !== 'derrota' && fase.rival && (
+          <div className="absolute left-[15%] bottom-[20%] z-10">
+            <img
+              src={`/sprites/${fase.rival.sprite}.png`}
+              alt={fase.rival.nombre}
+              className={`w-24 h-24 md:w-32 md:h-32 object-contain ${
+                estado === 'decision' ? 'animate-bounce' : ''
+              }`}
+              style={{ filter: animacionFallo ? 'brightness(0.5) sepia(1) hue-rotate(-50deg) saturate(5)' : 'none' }}
+            />
             <p 
-              className="text-xs text-gray-300 mt-0.5"
+              className="text-center text-white text-xs mt-1 bg-red-900/70 px-2 py-0.5 rounded"
               style={{ fontFamily: '"Press Start 2P", monospace' }}
             >
-              {gol.partido}
+              {fase.rival.nombre}
             </p>
           </div>
-          <div 
-            className="text-white text-right"
+        )}
+
+        <div className="absolute right-[15%] bottom-[20%] z-10">
+          <img
+            src="/sprites/maradona_izq.png"
+            alt={gol.autor.nombre}
+            className={`w-28 h-28 md:w-40 md:h-40 object-contain transition-all duration-300 ${
+              estado === 'decision' ? 'animate-pulse' : ''
+            } ${animacionExito ? 'scale-110' : ''}`}
+            style={{
+              filter: animacionExito ? 'drop-shadow(0 0 20px #00ff00)' : 
+                      animacionFallo ? 'grayscale(0.7) brightness(0.6)' : 'none'
+            }}
+          />
+          <p 
+            className="text-center text-white text-xs mt-1 bg-blue-600/70 px-2 py-0.5 rounded"
             style={{ fontFamily: '"Press Start 2P", monospace' }}
           >
-            <p className="text-xs">Fase {faseActual + 1} / {gol.fases.length}</p>
-            <p className="text-xs text-gray-400 mt-0.5">{gol.autor.nombre}</p>
-          </div>
+            {gol.autor.apodo}
+          </p>
+        </div>
+
+        <div 
+          className="absolute top-4 left-4 bg-black/60 text-white text-xs px-2 py-1 rounded"
+          style={{ fontFamily: '"Press Start 2P", monospace' }}
+        >
+          Fase {faseActual + 1} / {gol.fases.length}
+        </div>
+        <div 
+          className="absolute top-4 right-4 bg-black/60 text-white text-xs px-2 py-1 rounded"
+          style={{ fontFamily: '"Press Start 2P", monospace' }}
+        >
+          {gol.autor.nombre}
         </div>
       </div>
 
-      {/* Area principal del juego - flex para distribuir espacio */}
-      <div className="relative z-10 flex-1 flex flex-col items-center justify-between overflow-hidden p-3">
-        
-        {/* Sprites de personajes - RIVAL IZQUIERDA, MARADONA DERECHA (enfrentados) */}
-        <div className="flex justify-center items-end gap-12 md:gap-16 flex-shrink-0">
-          {/* Efecto de flash en exito */}
-          {animacionExito && (
-            <div className="absolute inset-0 bg-green-400/30 animate-pulse z-20 pointer-events-none" />
-          )}
-          {/* Efecto de flash en fallo */}
-          {animacionFallo && (
-            <div className="absolute inset-0 bg-red-600/40 animate-pulse z-20 pointer-events-none" />
-          )}
-
-          {/* Rival (izquierda) - solo si sprites están listos */}
-          {spritesListos && fase.rival && estado !== 'victoria' && estado !== 'derrota' && (
-            <div className="relative">
-              <img 
-                src={`/sprites/${fase.rival.sprite}.png`}
-                alt={fase.rival.nombre}
-                className={`w-24 h-24 md:w-32 md:h-32 object-contain ${estado === 'decision' && spritesListos ? 'animate-bounce' : ''}`}
-                style={{ 
-                  filter: animacionFallo ? 'brightness(0.5) sepia(1) hue-rotate(-50deg) saturate(5)' : 'none'
-                }}
-              />
-              <p 
-                className="text-center text-white text-xs mt-1 bg-red-900/70 px-2 py-0.5 rounded"
-                style={{ fontFamily: '"Press Start 2P", monospace' }}
-              >
-                {fase.rival.nombre}
-              </p>
-            </div>
-          )}
-
-          {/* Jugador protagonista (derecha) - Maradona mirando a la izquierda */}
-          <div className="relative">
-            <img 
-              src="/sprites/maradona_izq.png" 
-              alt={gol.autor.nombre}
-              className={`w-28 h-28 md:w-40 md:h-40 object-contain transition-all duration-300 ${
-                estado === 'decision' && spritesListos ? 'animate-pulse' : ''
-              } ${animacionExito ? 'scale-110' : ''}`}
-              style={{ 
-                filter: animacionExito ? 'drop-shadow(0 0 20px #00ff00)' : 
-                        animacionFallo ? 'grayscale(0.7) brightness(0.6)' : 'none'
-              }}
-            />
-            <p 
-              className="text-center text-white text-xs mt-1 bg-blue-600/70 px-2 py-0.5 rounded"
+      {/* ZONA DE UI (25% inferior) */}
+      <div className="flex-1 bg-black/80 border-t-4 border-yellow-600 shadow-2xl px-4 py-3 flex flex-col justify-center">
+        {estado === 'decision' && (
+          <div className="w-full max-w-4xl mx-auto space-y-3">
+            <h3 
+              className="text-yellow-400 text-sm md:text-base text-center"
               style={{ fontFamily: '"Press Start 2P", monospace' }}
             >
-              {gol.autor.apodo}
-            </p>
-          </div>
-        </div>
+              {fase.titulo}
+            </h3>
 
-        {/* Narrativa + Barra de timing + Opciones - TODO JUNTO */}
-        {estado === 'decision' && spritesListos && (
-          <div className="w-full max-w-2xl space-y-3 flex-1 flex flex-col items-center justify-center overflow-hidden px-2">
-            {/* Texto de la narrativa completo */}
-            <NarrativeDisplay 
-              texto={fase.narrativa}
-              titulo={fase.titulo}
-            />
-            
-            {/* Barra de timing */}
-            <TimingBar 
+            <div className="bg-gray-900/80 border border-gray-600 rounded p-2">
+              <p 
+                className="text-white text-xs md:text-sm leading-relaxed text-center"
+                style={{ fontFamily: '"Press Start 2P", monospace' }}
+              >
+                {fase.narrativa}
+              </p>
+            </div>
+
+            <TimingBar
               isActive={timingActivo}
               duration={fase.tiempoLimite}
               timingWindow={fase.timingWindow}
               onComplete={handleTimingComplete}
             />
-            
-            {/* Opciones de decision */}
-            <DecisionOptions 
-              opciones={fase.opciones}
+
+            <DecisionOptions
+              opciones={opcionesMezcladas}
               onSelect={handleOptionSelect}
               disabled={!!opcionSeleccionada}
               isTimingActive={timingActivo}
             />
-            
+
             <p 
-              className="text-yellow-400 text-xs text-center animate-pulse"
+              className="text-yellow-400 text-[10px] md:text-xs text-center animate-pulse"
               style={{ fontFamily: '"Press Start 2P", monospace' }}
             >
-              ¡Elige rapido!
+              ¡Elige rápido!
             </p>
           </div>
         )}
 
-        {/* Mensaje de resultado (exito o fallo) */}
         {estado === 'resultado' && (
-          <div className="w-full max-w-2xl px-2 flex-1 flex items-center justify-center">
-            <div className="bg-black/80 border-4 border-white rounded-lg p-4 max-w-2xl">
+          <div className="w-full max-w-2xl mx-auto">
+            <div className="bg-black/90 border-4 border-white rounded-lg p-4">
               <h3 
                 className={`text-lg mb-3 text-center ${opcionSeleccionada?.correcta ? 'text-green-400' : 'text-red-400'}`}
                 style={{
@@ -234,7 +218,7 @@ export function Game({ onBackToMenu }: GameProps) {
                 {opcionSeleccionada?.correcta ? '¡BIEN HECHO!' : '¡FALLASTE!'}
               </h3>
               <p 
-                className="text-white text-sm leading-relaxed"
+                className="text-white text-sm leading-relaxed text-center"
                 style={{
                   fontFamily: '"Press Start 2P", monospace',
                   lineHeight: '1.6',
@@ -248,18 +232,16 @@ export function Game({ onBackToMenu }: GameProps) {
         )}
       </div>
 
-      {/* Pantalla de Victoria */}
       {estado === 'victoria' && (
-        <GoalCelebration 
+        <GoalCelebration
           titulo={gol.titulo}
           subtitulo={`${gol.autor.nombre} - ${gol.partido}`}
           onContinue={handleRetry}
         />
       )}
 
-      {/* Pantalla de Derrota */}
       {estado === 'derrota' && (
-        <GameOver 
+        <GameOver
           razon={mensajeResultado}
           faseAlcanzada={faseActual}
           totalFases={gol.fases.length}
