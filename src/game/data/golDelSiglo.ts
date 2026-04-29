@@ -241,63 +241,29 @@ export const golDelSiglo: Gol = {
         }
       ]
     },
+    // Dentro de fases: fase_6_shilton
+{
+  id: 'fase_6_shilton',
+  tipo: 'decision',
+  titulo: 'FRENTE AL ARQUERO',
+  // ... resto
+  opciones: [
     {
-      id: 'fase_6_shilton',
-      tipo: 'decision',
-      titulo: 'FRENTE AL ARQUERO',
-      descripcion: 'Peter Shilton achica',
-      narrativa: 'Maradona entra al área grande. El arquero Peter Shilton sale a achicar.',
-      tiempoLimite: 2200,
-      timingWindow: { inicio: 35, fin: 65 },
-      rival: {
-        nombre: 'Peter Shilton',
-        sprite: 'shilton'
-      },
-      primerPlano: {
-        personaje: 'Peter Shilton',
-        dialogo: 'Salió a achicar, pero fue imposible',
-        spriteCloseUp: '/sprites/shilton_closeup.png'
-      },
-      opciones: [
-        {
-          id: 'opcion_driblar',
-          texto: 'Driblar con toque sutil',
-          correcta: true,
-          resultado: 'sigue',
-          descripcionExito: 'Diego lo dribla con un toque sutil de zurda, dejándolo desparramado en el suelo.'
-        },
-        {
-          id: 'opcion_fallo',
-          texto: 'Definir fuerte',
-          correcta: false,
-          resultado: 'pierde',
-          descripcionFallo: 'Shilton ataja el disparo. Gran atajada.'
-        }
-      ]
+      id: 'opcion_driblar',
+      texto: 'Driblar con toque sutil',
+      correcta: true,
+      resultado: 'gol',   // <--- cambiado de 'sigue' a 'gol'
+      descripcionExito: 'Diego lo dribla con un toque sutil de zurda, dejándolo desparramado en el suelo. ¡GOOOOL!'
     },
     {
-      id: 'fase_7_gol',
-      tipo: 'gol',
-      titulo: '¡GOOOOL DEL SIGLO!',
-      descripcion: 'El gol más famoso de la historia',
-      narrativa: 'Con el arco vacío y sin más rivales, Maradona empuja la pelota suavemente con la zurda al fondo de la red. La jugada completa duró unos 10-11 segundos, Diego tocó la pelota 11-12 veces, recorrió unos 50-60 metros y gambeteó a 5 jugadores ingleses.',
-      tiempoLimite: 5000,
-      timingWindow: { inicio: 0, fin: 100 },
-      primerPlano: {
-        personaje: 'Diego Maradona',
-        dialogo: '¡Gol del siglo!',
-        spriteCloseUp: '/sprites/maradona_closeup.png'
-      },
-      opciones: [
-        {
-          id: 'opcion_celebrar',
-          texto: '¡CELEBRAR!',
-          correcta: true,
-          resultado: 'gol',
-          descripcionExito: '¡ARGENTINA 2 - INGLATERRA 0! ¡EL GOL DEL SIGLO!'
-        }
-      ]
+      id: 'opcion_fallo',
+      texto: 'Definir fuerte',
+      correcta: false,
+      resultado: 'pierde',
+      descripcionFallo: 'Shilton ataja el disparo. Gran atajada.'
     }
+  ]
+},
   ]
 };
 
