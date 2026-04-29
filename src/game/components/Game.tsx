@@ -11,6 +11,7 @@ interface GameProps {
 }
 
 const RESULT_DISPLAY_DURATION = 1800;
+const INTRO_AUTO_DURATION = 2500; // 2.5 segundos para fases intro
 
 export function Game({ onBackToMenu }: GameProps) {
   const [gol] = useState<Gol>(golDelSiglo);
@@ -24,22 +25,24 @@ export function Game({ onBackToMenu }: GameProps) {
   const [animacionFallo, setAnimacionFallo] = useState(false);
   const [mostrarPrimerPlano, setMostrarPrimerPlano] = useState(false);
   const [infoPrimerPlano, setInfoPrimerPlano] = useState<{ personaje: string; dialogo: string; spriteCloseUp: string } | null>(null);
-  const [timerIniciado, setTimerIniciado] = useState(false); // Nuevo: controla si el temporizador ya empezó
+  const [timerIniciado, setTimerIniciado] = useState(false);
 
   const fase: Fase = gol.fases[faseActual];
-  // El timer está activo solo si se ha iniciado, el juego está en decisión, hay tiempo y no hay primer plano
   const timingActivo = timerIniciado && estado === 'decision' && tiempoRestante > 0 && !mostrarPrimerPlano;
 
-  // Mezclar opciones
+  // Detectar si es fase intro automática (tipo 'intro' y sin opciones)
+  const esIntroAutomatica = fase.tipo === 'intro' && (!fase.opciones || fase.opciones.length === 0);
+
+  // Mezclar opciones (solo para fases de decisión)
   const opcionesMezcladas = useMemo(() => {
-    if (!fase.opciones) return [];
+    if (fase.tipo !== 'decision' || !fase.opciones) return [];
     const shuffled = [...fase.opciones];
     for (let i = shuffled.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
     }
     return shuffled;
-  }, [fase.opciones]);
+  }, [fase.opciones, fase.tipo]);
 
   // Narrativa corta
   const narrativaCorta = fase.narrativa
@@ -47,7 +50,7 @@ export function Game({ onBackToMenu }: GameProps) {
     .map((s) => s.trim())
     .find(Boolean) || fase.narrativa;
 
-  // Reset al cambiar de fase (pero no se reinicia el timer si ya estaba iniciado)
+  // Reset al cambiar de fase
   useEffect(() => {
     setEstado('decision');
     setOpcionSeleccionada(null);
@@ -59,7 +62,23 @@ export function Game({ onBackToMenu }: GameProps) {
     setInfoPrimerPlano(null);
   }, [faseActual]);
 
-  // Iniciar el temporizador cuando se alcanza la fase 2 (Maradona controla)
+  // Avance automático para fases intro (sin opciones)
+  useEffect(() => {
+    if (esIntroAutomatica && estado === 'decision') {
+      const timeout = setTimeout(() => {
+        // Avanzar a la siguiente fase (no hay opciones, es automático)
+        if (faseActual + 1 < gol.fases.length) {
+          setFaseActual(prev => prev + 1);
+        } else {
+          // Si es la última fase intro (no debería pasar), pasar a victoria? Mejor no.
+          console.warn('Intro automática pero no hay más fases');
+        }
+      }, INTRO_AUTO_DURATION);
+      return () => clearTimeout(timeout);
+    }
+  }, [esIntroAutomatica, estado, faseActual, gol.fases.length]);
+
+  // Iniciar temporizador cuando se alcanza la fase 2 (Maradona controla)
   useEffect(() => {
     if (!timerIniciado && faseActual >= 2) {
       setTimerIniciado(true);
@@ -67,7 +86,7 @@ export function Game({ onBackToMenu }: GameProps) {
     }
   }, [faseActual, timerIniciado, gol.tiempoGlobalMaximo]);
 
-  // Timer global (solo si está iniciado y las condiciones son correctas)
+  // Timer global
   useEffect(() => {
     if (!timingActivo) return;
     const interval = setInterval(() => {
@@ -85,7 +104,15 @@ export function Game({ onBackToMenu }: GameProps) {
   }, [estado, tiempoRestante, mostrarPrimerPlano, timerIniciado]);
 
   const handleOptionSelect = useCallback((opcion: Opcion) => {
-    if (!timingActivo && !(faseActual < 2 && opcion.correcta)) return; // Permitir elegir en fases 0-1 incluso sin timer activo
+    // En fases intro automáticas no debería llamarse, pero por si acaso
+    if (esIntroAutomatica) return;
+
+    // En fases 0-1 sin timer, permitir selección aunque timingActivo sea false
+    if (faseActual < 2 && !timerIniciado) {
+      // Permitir
+    } else if (!timingActivo) {
+      return;
+    }
 
     setOpcionSeleccionada(opcion);
     setEstado('resultado');
@@ -121,7 +148,7 @@ export function Game({ onBackToMenu }: GameProps) {
         setEstado('derrota');
       }, 2000);
     }
-  }, [faseActual, fase.primerPlano, timingActivo]);
+  }, [esIntroAutomatica, faseActual, timerIniciado, timingActivo, fase.primerPlano]);
 
   const handleRetry = useCallback(() => {
     setFaseActual(0);
@@ -129,7 +156,7 @@ export function Game({ onBackToMenu }: GameProps) {
     setMensajeResultado('');
     setMensajeDialogo('');
     setTiempoRestante(gol.tiempoGlobalMaximo);
-    setTimerIniciado(false); // Reiniciar el flag del timer
+    setTimerIniciado(false);
     setOpcionSeleccionada(null);
     setAnimacionExito(false);
     setAnimacionFallo(false);
@@ -149,8 +176,7 @@ export function Game({ onBackToMenu }: GameProps) {
     }
   };
 
-  // La barra de tiempo se muestra solo si el timer ya fue iniciado (faseActual >= 2)
-  const mostrarBarra = timerIniciado && estado === 'decision';
+  const mostrarBarra = timerIniciado && estado === 'decision' && !esIntroAutomatica;
 
   return (
     <div className="h-screen flex flex-col bg-gradient-to-b from-green-800 to-green-900">
@@ -218,18 +244,19 @@ export function Game({ onBackToMenu }: GameProps) {
                 {narrativaCorta}
               </p>
             </div>
-            {/* Barra de timing condicional: solo si timerIniciado */}
             {mostrarBarra && (
               <TimingBar isActive={timingActivo} totalTime={gol.tiempoGlobalMaximo} remainingTime={tiempoRestante} />
             )}
-            <DecisionOptions
-              opciones={opcionesMezcladas}
-              onSelect={handleOptionSelect}
-              disabled={!!opcionSeleccionada}
-              isTimingActive={timingActivo}
-            />
+            {!esIntroAutomatica && (
+              <DecisionOptions
+                opciones={opcionesMezcladas}
+                onSelect={handleOptionSelect}
+                disabled={!!opcionSeleccionada}
+                isTimingActive={timingActivo}
+              />
+            )}
             <p className="text-yellow-400 text-[10px] md:text-xs text-center animate-pulse" style={{ fontFamily: '"Press Start 2P", monospace' }}>
-              ¡Elige rápido!
+              {esIntroAutomatica ? 'Cargando...' : '¡Elige rápido!'}
             </p>
           </div>
         )}
