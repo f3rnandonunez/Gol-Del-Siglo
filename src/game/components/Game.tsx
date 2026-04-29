@@ -285,33 +285,30 @@ export function Game({ onBackToMenu }: GameProps) {
 
       {/* Primer plano (modal) */}
       {mostrarPrimerPlano && infoPrimerPlano && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90">
-          <div className="bg-black border-4 border-yellow-500 rounded-lg p-6 text-center max-w-md w-full">
-            <img
-              src={infoPrimerPlano.spriteCloseUp}
-              alt={infoPrimerPlano.personaje}
-              className="w-48 h-48 mx-auto object-contain mb-4"
-              onError={(e) => {
-                e.currentTarget.src = '/sprites/maradona_izq.png';
-              }}
-            />
-            <p className="text-yellow-300 text-lg mb-2" style={{ fontFamily: '"Press Start 2P", monospace' }}>
-              {infoPrimerPlano.personaje}
-            </p>
-            <p className="text-white text-sm italic" style={{ fontFamily: '"Press Start 2P", monospace', lineHeight: '1.5' }}>
-              “{infoPrimerPlano.dialogo}”
-            </p>
-            <button
-              onClick={cerrarPrimerPlano}
-              className="mt-4 px-4 py-2 bg-yellow-600 text-black rounded text-xs hover:bg-yellow-500 transition-colors"
-              style={{ fontFamily: '"Press Start 2P", monospace' }}
-            >
-              CONTINUAR
-            </button>
-          </div>
-        </div>
-      )}
-
+  <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}>
+    <div className="bg-black border-4 border-yellow-500 rounded-lg p-6 text-center max-w-md w-full mx-4">
+      <img
+        src={infoPrimerPlano.spriteCloseUp}
+        alt={infoPrimerPlano.personaje}
+        className="w-48 h-48 mx-auto object-contain mb-4"
+        onError={(e) => { e.currentTarget.src = '/sprites/maradona_izq.png'; }}
+      />
+      <p className="text-yellow-300 text-lg mb-2" style={{ fontFamily: '"Press Start 2P", monospace' }}>
+        {infoPrimerPlano.personaje}
+      </p>
+      <p className="text-white text-sm italic" style={{ fontFamily: '"Press Start 2P", monospace' }}>
+        "{infoPrimerPlano.dialogo}"
+      </p>
+      <button
+        onClick={cerrarPrimerPlano}
+        className="mt-4 px-4 py-2 bg-yellow-600 text-black rounded text-xs hover:bg-yellow-500"
+        style={{ fontFamily: '"Press Start 2P", monospace' }}
+      >
+        CONTINUAR
+      </button>
+    </div>
+  </div>
+)}
       {estado === 'victoria' && (
         <GoalCelebration
           titulo={gol.titulo}
