@@ -33,6 +33,12 @@ export function Game({ onBackToMenu }: GameProps) {
     return shuffled;
   }, [fase.opciones]);
 
+  // Narrativa corta (primera oración)
+  const narrativaCorta = fase.narrativa
+    .split(/[.!?]/)
+    .map((segmento) => segmento.trim())
+    .find(Boolean) || fase.narrativa;
+
   // Iniciar la fase
   useEffect(() => {
     setEstado('decision');
@@ -40,7 +46,6 @@ export function Game({ onBackToMenu }: GameProps) {
     setMensajeResultado('');
     setAnimacionExito(false);
     setAnimacionFallo(false);
-    // Activar timing después de un pequeño delay
     const timingTimeout = setTimeout(() => {
       setTimingActivo(true);
     }, 500);
@@ -56,7 +61,7 @@ export function Game({ onBackToMenu }: GameProps) {
 
   const handleOptionSelect = useCallback((opcion: Opcion) => {
     if (!timingActivo) return;
-    
+
     setOpcionSeleccionada(opcion);
     setTimingActivo(false);
     setEstado('resultado');
@@ -64,7 +69,7 @@ export function Game({ onBackToMenu }: GameProps) {
     if (opcion.correcta) {
       setAnimacionExito(true);
       setMensajeResultado(opcion.descripcionExito || '¡Excelente decisión!');
-      
+
       setTimeout(() => {
         setAnimacionExito(false);
         if (opcion.resultado === 'gol') {
@@ -94,11 +99,10 @@ export function Game({ onBackToMenu }: GameProps) {
     setAnimacionFallo(false);
   }, []);
 
-  // Renderizado principal con layout de columnas (75% campo, 25% UI)
   return (
     <div className="h-screen flex flex-col bg-gradient-to-b from-green-800 to-green-900">
       {/* ZONA DEL CAMPO (75% de la altura) */}
-      <div className="relative flex-3 bg-cover bg-center" style={{ flex: '3', backgroundImage: 'url(/sprites/campo_futbol.png)' }}>
+      <div className="relative flex-[3] bg-cover bg-center" style={{ backgroundImage: 'url(/sprites/campo_futbol.png)' }}>
         <div className="absolute inset-0 bg-black/20" />
 
         {animacionExito && (
@@ -114,12 +118,16 @@ export function Game({ onBackToMenu }: GameProps) {
             <img
               src={`/sprites/${fase.rival.sprite}.png`}
               alt={fase.rival.nombre}
+              onError={(e) => {
+                if (e.currentTarget.src.includes("maradona_izq.png")) return;
+                e.currentTarget.src = "/sprites/maradona_izq.png";
+              }}
               className={`w-24 h-24 md:w-32 md:h-32 object-contain ${
                 estado === 'decision' ? 'animate-bounce' : ''
               }`}
               style={{ filter: animacionFallo ? 'brightness(0.5) sepia(1) hue-rotate(-50deg) saturate(5)' : 'none' }}
             />
-            <p 
+            <p
               className="text-center text-white text-xs mt-1 bg-red-900/70 px-2 py-0.5 rounded"
               style={{ fontFamily: '"Press Start 2P", monospace' }}
             >
@@ -132,15 +140,19 @@ export function Game({ onBackToMenu }: GameProps) {
           <img
             src="/sprites/maradona_izq.png"
             alt={gol.autor.nombre}
+            onError={(e) => {
+              if (e.currentTarget.src.includes("maradona_izq.png")) return;
+              e.currentTarget.src = "/sprites/maradona_izq.png";
+            }}
             className={`w-28 h-28 md:w-40 md:h-40 object-contain transition-all duration-300 ${
               estado === 'decision' ? 'animate-pulse' : ''
             } ${animacionExito ? 'scale-110' : ''}`}
             style={{
-              filter: animacionExito ? 'drop-shadow(0 0 20px #00ff00)' : 
+              filter: animacionExito ? 'drop-shadow(0 0 20px #00ff00)' :
                       animacionFallo ? 'grayscale(0.7) brightness(0.6)' : 'none'
             }}
           />
-          <p 
+          <p
             className="text-center text-white text-xs mt-1 bg-blue-600/70 px-2 py-0.5 rounded"
             style={{ fontFamily: '"Press Start 2P", monospace' }}
           >
@@ -148,13 +160,13 @@ export function Game({ onBackToMenu }: GameProps) {
           </p>
         </div>
 
-        <div 
+        <div
           className="absolute top-4 left-4 bg-black/60 text-white text-xs px-2 py-1 rounded"
           style={{ fontFamily: '"Press Start 2P", monospace' }}
         >
           Fase {faseActual + 1} / {gol.fases.length}
         </div>
-        <div 
+        <div
           className="absolute top-4 right-4 bg-black/60 text-white text-xs px-2 py-1 rounded"
           style={{ fontFamily: '"Press Start 2P", monospace' }}
         >
@@ -166,7 +178,7 @@ export function Game({ onBackToMenu }: GameProps) {
       <div className="flex-1 bg-black/80 border-t-4 border-yellow-600 shadow-2xl px-4 py-3 flex flex-col justify-center">
         {estado === 'decision' && (
           <div className="w-full max-w-4xl mx-auto space-y-3">
-            <h3 
+            <h3
               className="text-yellow-400 text-sm md:text-base text-center"
               style={{ fontFamily: '"Press Start 2P", monospace' }}
             >
@@ -174,11 +186,11 @@ export function Game({ onBackToMenu }: GameProps) {
             </h3>
 
             <div className="bg-gray-900/80 border border-gray-600 rounded p-2">
-              <p 
+              <p
                 className="text-white text-xs md:text-sm leading-relaxed text-center"
                 style={{ fontFamily: '"Press Start 2P", monospace' }}
               >
-                {fase.narrativa}
+                {narrativaCorta}
               </p>
             </div>
 
@@ -196,7 +208,7 @@ export function Game({ onBackToMenu }: GameProps) {
               isTimingActive={timingActivo}
             />
 
-            <p 
+            <p
               className="text-yellow-400 text-[10px] md:text-xs text-center animate-pulse"
               style={{ fontFamily: '"Press Start 2P", monospace' }}
             >
@@ -208,7 +220,7 @@ export function Game({ onBackToMenu }: GameProps) {
         {estado === 'resultado' && (
           <div className="w-full max-w-2xl mx-auto">
             <div className="bg-black/90 border-4 border-white rounded-lg p-4">
-              <h3 
+              <h3
                 className={`text-lg mb-3 text-center ${opcionSeleccionada?.correcta ? 'text-green-400' : 'text-red-400'}`}
                 style={{
                   fontFamily: '"Press Start 2P", monospace',
@@ -217,7 +229,7 @@ export function Game({ onBackToMenu }: GameProps) {
               >
                 {opcionSeleccionada?.correcta ? '¡BIEN HECHO!' : '¡FALLASTE!'}
               </h3>
-              <p 
+              <p
                 className="text-white text-sm leading-relaxed text-center"
                 style={{
                   fontFamily: '"Press Start 2P", monospace',
