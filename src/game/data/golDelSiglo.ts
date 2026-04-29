@@ -35,6 +35,7 @@ export const seleccionInglaterra: Seleccion = {
 // Estructura basada en diagrama de flujo
 export const golDelSiglo: Gol = {
   id: 'gol_del_siglo_1986',
+  tiempoGlobalMaximo: 12000,
   titulo: 'EL GOL DEL SIGLO',
   subtitulo: 'La jugada perfecta',
   partido: 'Argentina vs Inglaterra',

@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import type { Gol, Opcion, Fase } from '../types';
 import { golDelSiglo } from '../data/golDelSiglo';
 import { TimingBar } from './TimingBar';
@@ -19,13 +19,24 @@ export function Game({ onBackToMenu }: GameProps) {
   const [estado, setEstado] = useState<'decision' | 'resultado' | 'victoria' | 'derrota'>('decision');
   const [mensajeResultado, setMensajeResultado] = useState('');
   const [mensajeDialogo, setMensajeDialogo] = useState('');
-  const [timingActivo, setTimingActivo] = useState(false);
+  const [tiempoRestante, setTiempoRestante] = useState(gol.tiempoGlobalMaximo);
   const [opcionSeleccionada, setOpcionSeleccionada] = useState<Opcion | null>(null);
   const [animacionExito, setAnimacionExito] = useState(false);
   const [animacionFallo, setAnimacionFallo] = useState(false);
 
   const fase: Fase = gol.fases[faseActual];
   const [spritesListos, setSpritesListos] = useState(true);
+  const timingActivo = estado === 'decision' && tiempoRestante > 0;
+
+  const opcionesMezcladas = useMemo(() => {
+    if (!fase.opciones) return [];
+    const shuffled = [...fase.opciones];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  }, [fase.opciones]);
 
   useEffect(() => {
     setEstado('decision');
@@ -35,26 +46,32 @@ export function Game({ onBackToMenu }: GameProps) {
     setAnimacionExito(false);
     setAnimacionFallo(false);
     setSpritesListos(true);
-
-    const timingTimeout = setTimeout(() => {
-      setTimingActivo(true);
-    }, 500);
-
-    return () => clearTimeout(timingTimeout);
   }, [faseActual]);
 
-  const handleTimingComplete = useCallback(() => {
-    if (estado === 'decision' && !opcionSeleccionada) {
+  useEffect(() => {
+    if (estado !== 'decision' || tiempoRestante <= 0) return;
+
+    const interval = setInterval(() => {
+      setTiempoRestante((prev: number) => {
+        const next = Math.max(0, prev - 100);
+        return next;
+      });
+    }, 100);
+
+    return () => clearInterval(interval);
+  }, [estado, tiempoRestante]);
+
+  useEffect(() => {
+    if (estado === 'decision' && tiempoRestante <= 0) {
       setEstado('derrota');
-      setMensajeResultado('¡Se acabo el tiempo! La defensa recupero la pelota.');
+      setMensajeResultado('Se acabó el tiempo. La jugada no se completó.');
     }
-  }, [estado, opcionSeleccionada]);
+  }, [estado, tiempoRestante]);
 
   const handleOptionSelect = useCallback((opcion: Opcion) => {
     if (!timingActivo) return;
 
     setOpcionSeleccionada(opcion);
-    setTimingActivo(false);
     setEstado('resultado');
     setMensajeDialogo(opcion.dialogo || '');
 
@@ -86,11 +103,11 @@ export function Game({ onBackToMenu }: GameProps) {
     setEstado('decision');
     setMensajeResultado('');
     setMensajeDialogo('');
-    setTimingActivo(true);
+    setTiempoRestante(gol.tiempoGlobalMaximo);
     setOpcionSeleccionada(null);
     setAnimacionExito(false);
     setAnimacionFallo(false);
-  }, []);
+  }, [gol.tiempoGlobalMaximo]);
 
   const narrativaCorta =
     fase.narrativa
@@ -114,34 +131,21 @@ export function Game({ onBackToMenu }: GameProps) {
         <div className="absolute top-0 left-0 right-0 z-20 bg-black/55 border-b-2 border-white/60 px-4 py-2">
           <div className="flex justify-between items-center text-white">
             <div>
-              <h1
-                className="text-sm md:text-base text-yellow-300"
-                style={{ fontFamily: '"Press Start 2P", monospace' }}
-              >
+              <h1 className="text-sm md:text-base text-yellow-300" style={{ fontFamily: '"Press Start 2P", monospace' }}>
                 {gol.titulo}
               </h1>
-              <p
-                className="text-[10px] md:text-xs text-gray-300 mt-1"
-                style={{ fontFamily: '"Press Start 2P", monospace' }}
-              >
+              <p className="text-[10px] md:text-xs text-gray-300 mt-1" style={{ fontFamily: '"Press Start 2P", monospace' }}>
                 {gol.partido}
               </p>
             </div>
-            <p
-              className="text-[10px] md:text-xs text-right"
-              style={{ fontFamily: '"Press Start 2P", monospace' }}
-            >
+            <p className="text-[10px] md:text-xs text-right" style={{ fontFamily: '"Press Start 2P", monospace' }}>
               Fase {faseActual + 1}/{gol.fases.length}
             </p>
           </div>
         </div>
 
-        {animacionExito && (
-          <div className="absolute inset-0 bg-green-400/30 animate-pulse z-10 pointer-events-none" />
-        )}
-        {animacionFallo && (
-          <div className="absolute inset-0 bg-red-600/40 animate-pulse z-10 pointer-events-none" />
-        )}
+        {animacionExito && <div className="absolute inset-0 bg-green-400/30 animate-pulse z-10 pointer-events-none" />}
+        {animacionFallo && <div className="absolute inset-0 bg-red-600/40 animate-pulse z-10 pointer-events-none" />}
 
         <div className="absolute inset-0 z-20">
           {spritesListos && fase.rival && estado !== 'victoria' && estado !== 'derrota' && (
@@ -150,8 +154,8 @@ export function Game({ onBackToMenu }: GameProps) {
                 src={`/sprites/${fase.rival.sprite}.png`}
                 alt={fase.rival.nombre}
                 onError={(e) => {
-                  if (e.currentTarget.src.includes("maradona_izq.png")) return;
-                  e.currentTarget.src = "/sprites/maradona_izq.png";
+                  if (e.currentTarget.src.includes('maradona_izq.png')) return;
+                  e.currentTarget.src = '/sprites/maradona_izq.png';
                 }}
                 className={`w-36 h-36 md:w-48 md:h-48 object-contain ${
                   estado === 'decision' && spritesListos ? 'animate-bounce' : ''
@@ -160,10 +164,7 @@ export function Game({ onBackToMenu }: GameProps) {
                   filter: animacionFallo ? 'brightness(0.5) sepia(1) hue-rotate(-50deg) saturate(5)' : 'none'
                 }}
               />
-              <p
-                className="text-white text-[10px] md:text-xs mt-1 bg-red-900/70 px-2 py-0.5 rounded inline-block"
-                style={{ fontFamily: '"Press Start 2P", monospace' }}
-              >
+              <p className="text-white text-[10px] md:text-xs mt-1 bg-red-900/70 px-2 py-0.5 rounded inline-block" style={{ fontFamily: '"Press Start 2P", monospace' }}>
                 {fase.rival.nombre}
               </p>
             </div>
@@ -174,8 +175,8 @@ export function Game({ onBackToMenu }: GameProps) {
               src="/sprites/maradona_izq.png"
               alt={gol.autor.nombre}
               onError={(e) => {
-                if (e.currentTarget.src.includes("maradona_izq.png")) return;
-                e.currentTarget.src = "/sprites/maradona_izq.png";
+                if (e.currentTarget.src.includes('maradona_izq.png')) return;
+                e.currentTarget.src = '/sprites/maradona_izq.png';
               }}
               className={`w-40 h-40 md:w-56 md:h-56 object-contain transition-all duration-300 ${
                 estado === 'decision' && spritesListos ? 'animate-pulse' : ''
@@ -188,10 +189,7 @@ export function Game({ onBackToMenu }: GameProps) {
                     : 'none'
               }}
             />
-            <p
-              className="text-white text-[10px] md:text-xs mt-1 bg-blue-600/70 px-2 py-0.5 rounded inline-block"
-              style={{ fontFamily: '"Press Start 2P", monospace' }}
-            >
+            <p className="text-white text-[10px] md:text-xs mt-1 bg-blue-600/70 px-2 py-0.5 rounded inline-block" style={{ fontFamily: '"Press Start 2P", monospace' }}>
               {gol.autor.apodo}
             </p>
           </div>
@@ -206,12 +204,11 @@ export function Game({ onBackToMenu }: GameProps) {
             <div className="space-y-3">
               <TimingBar
                 isActive={timingActivo}
-                duration={fase.tiempoLimite}
-                timingWindow={fase.timingWindow}
-                onComplete={handleTimingComplete}
+                totalTime={gol.tiempoGlobalMaximo}
+                remainingTime={tiempoRestante}
               />
               <DecisionOptions
-                opciones={fase.opciones}
+                opciones={opcionesMezcladas}
                 onSelect={handleOptionSelect}
                 disabled={!!opcionSeleccionada}
                 isTimingActive={timingActivo}

@@ -29,6 +29,7 @@ export interface Fase {
 
 export interface Gol {
   id: string;
+  tiempoGlobalMaximo: number; // milisegundos para todo el juego
   titulo: string;
   subtitulo: string;
   partido: string;
