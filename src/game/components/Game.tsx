@@ -10,19 +10,23 @@ interface GameProps {
   onBackToMenu: () => void;
 }
 
+const RESULT_DISPLAY_DURATION = 1800;
+
 export function Game({ onBackToMenu }: GameProps) {
   const [gol] = useState<Gol>(golDelSiglo);
   const [faseActual, setFaseActual] = useState(0);
   const [estado, setEstado] = useState<'decision' | 'resultado' | 'victoria' | 'derrota'>('decision');
   const [mensajeResultado, setMensajeResultado] = useState('');
-  const [timingActivo, setTimingActivo] = useState(false);
+  const [mensajeDialogo, setMensajeDialogo] = useState('');
+  const [tiempoRestante, setTiempoRestante] = useState(gol.tiempoGlobalMaximo);
   const [opcionSeleccionada, setOpcionSeleccionada] = useState<Opcion | null>(null);
   const [animacionExito, setAnimacionExito] = useState(false);
   const [animacionFallo, setAnimacionFallo] = useState(false);
 
   const fase: Fase = gol.fases[faseActual];
+  const timingActivo = estado === 'decision' && tiempoRestante > 0;
 
-  // Mezclar las opciones en cada fase (para que la correcta no sea siempre la primera)
+  // Mezclar opciones
   const opcionesMezcladas = useMemo(() => {
     if (!fase.opciones) return [];
     const shuffled = [...fase.opciones];
@@ -33,38 +37,50 @@ export function Game({ onBackToMenu }: GameProps) {
     return shuffled;
   }, [fase.opciones]);
 
-  // Narrativa corta (primera oración)
+  // Narrativa corta
   const narrativaCorta = fase.narrativa
     .split(/[.!?]/)
     .map((segmento) => segmento.trim())
     .find(Boolean) || fase.narrativa;
 
-  // Iniciar la fase
+  // Reset al cambiar de fase
   useEffect(() => {
     setEstado('decision');
     setOpcionSeleccionada(null);
     setMensajeResultado('');
+    setMensajeDialogo('');
     setAnimacionExito(false);
     setAnimacionFallo(false);
-    const timingTimeout = setTimeout(() => {
-      setTimingActivo(true);
-    }, 500);
-    return () => clearTimeout(timingTimeout);
   }, [faseActual]);
 
-  const handleTimingComplete = useCallback(() => {
-    if (estado === 'decision' && !opcionSeleccionada) {
+  // Timer global
+  useEffect(() => {
+    if (estado !== 'decision' || tiempoRestante <= 0) return;
+
+    const interval = setInterval(() => {
+      setTiempoRestante((prev) => {
+        const next = Math.max(0, prev - 100);
+        return next;
+      });
+    }, 100);
+
+    return () => clearInterval(interval);
+  }, [estado, tiempoRestante]);
+
+  // Verificar fin del tiempo
+  useEffect(() => {
+    if (estado === 'decision' && tiempoRestante <= 0) {
       setEstado('derrota');
-      setMensajeResultado('¡Se acabó el tiempo! La defensa recuperó la pelota.');
+      setMensajeResultado('Se acabó el tiempo. La jugada no se completó.');
     }
-  }, [estado, opcionSeleccionada]);
+  }, [estado, tiempoRestante]);
 
   const handleOptionSelect = useCallback((opcion: Opcion) => {
     if (!timingActivo) return;
 
     setOpcionSeleccionada(opcion);
-    setTimingActivo(false);
     setEstado('resultado');
+    setMensajeDialogo(opcion.dialogo || '');
 
     if (opcion.correcta) {
       setAnimacionExito(true);
@@ -75,10 +91,10 @@ export function Game({ onBackToMenu }: GameProps) {
         if (opcion.resultado === 'gol') {
           setEstado('victoria');
         } else {
-          setFaseActual(prev => prev + 1);
+          setFaseActual((prev) => prev + 1);
           setOpcionSeleccionada(null);
         }
-      }, 2500);
+      }, RESULT_DISPLAY_DURATION);
     } else {
       setAnimacionFallo(true);
       setMensajeResultado(opcion.descripcionFallo || '¡Mala decisión! Perdiste la pelota.');
@@ -93,15 +109,16 @@ export function Game({ onBackToMenu }: GameProps) {
     setFaseActual(0);
     setEstado('decision');
     setMensajeResultado('');
-    setTimingActivo(true);
+    setMensajeDialogo('');
+    setTiempoRestante(gol.tiempoGlobalMaximo);
     setOpcionSeleccionada(null);
     setAnimacionExito(false);
     setAnimacionFallo(false);
-  }, []);
+  }, [gol.tiempoGlobalMaximo]);
 
   return (
     <div className="h-screen flex flex-col bg-gradient-to-b from-green-800 to-green-900">
-      {/* ZONA DEL CAMPO (75% de la altura) */}
+      {/* ZONA DEL CAMPO (75%) */}
       <div className="relative flex-[3] bg-cover bg-center" style={{ backgroundImage: 'url(/sprites/campo_futbol.png)' }}>
         <div className="absolute inset-0 bg-black/20" />
 
@@ -112,7 +129,7 @@ export function Game({ onBackToMenu }: GameProps) {
           <div className="absolute inset-0 bg-red-600/40 animate-pulse pointer-events-none z-20" />
         )}
 
-        {/* SPRITES dentro del campo */}
+        {/* Sprites */}
         {estado !== 'victoria' && estado !== 'derrota' && fase.rival && (
           <div className="absolute left-[15%] bottom-[20%] z-10">
             <img
@@ -127,10 +144,7 @@ export function Game({ onBackToMenu }: GameProps) {
               }`}
               style={{ filter: animacionFallo ? 'brightness(0.5) sepia(1) hue-rotate(-50deg) saturate(5)' : 'none' }}
             />
-            <p
-              className="text-center text-white text-xs mt-1 bg-red-900/70 px-2 py-0.5 rounded"
-              style={{ fontFamily: '"Press Start 2P", monospace' }}
-            >
+            <p className="text-center text-white text-xs mt-1 bg-red-900/70 px-2 py-0.5 rounded" style={{ fontFamily: '"Press Start 2P", monospace' }}>
               {fase.rival.nombre}
             </p>
           </div>
@@ -152,24 +166,15 @@ export function Game({ onBackToMenu }: GameProps) {
                       animacionFallo ? 'grayscale(0.7) brightness(0.6)' : 'none'
             }}
           />
-          <p
-            className="text-center text-white text-xs mt-1 bg-blue-600/70 px-2 py-0.5 rounded"
-            style={{ fontFamily: '"Press Start 2P", monospace' }}
-          >
+          <p className="text-center text-white text-xs mt-1 bg-blue-600/70 px-2 py-0.5 rounded" style={{ fontFamily: '"Press Start 2P", monospace' }}>
             {gol.autor.apodo}
           </p>
         </div>
 
-        <div
-          className="absolute top-4 left-4 bg-black/60 text-white text-xs px-2 py-1 rounded"
-          style={{ fontFamily: '"Press Start 2P", monospace' }}
-        >
+        <div className="absolute top-4 left-4 bg-black/60 text-white text-xs px-2 py-1 rounded" style={{ fontFamily: '"Press Start 2P", monospace' }}>
           Fase {faseActual + 1} / {gol.fases.length}
         </div>
-        <div
-          className="absolute top-4 right-4 bg-black/60 text-white text-xs px-2 py-1 rounded"
-          style={{ fontFamily: '"Press Start 2P", monospace' }}
-        >
+        <div className="absolute top-4 right-4 bg-black/60 text-white text-xs px-2 py-1 rounded" style={{ fontFamily: '"Press Start 2P", monospace' }}>
           {gol.autor.nombre}
         </div>
       </div>
@@ -178,27 +183,20 @@ export function Game({ onBackToMenu }: GameProps) {
       <div className="flex-1 bg-black/80 border-t-4 border-yellow-600 shadow-2xl px-4 py-3 flex flex-col justify-center">
         {estado === 'decision' && (
           <div className="w-full max-w-4xl mx-auto space-y-3">
-            <h3
-              className="text-yellow-400 text-sm md:text-base text-center"
-              style={{ fontFamily: '"Press Start 2P", monospace' }}
-            >
+            <h3 className="text-yellow-400 text-sm md:text-base text-center" style={{ fontFamily: '"Press Start 2P", monospace' }}>
               {fase.titulo}
             </h3>
 
             <div className="bg-gray-900/80 border border-gray-600 rounded p-2">
-              <p
-                className="text-white text-xs md:text-sm leading-relaxed text-center"
-                style={{ fontFamily: '"Press Start 2P", monospace' }}
-              >
+              <p className="text-white text-xs md:text-sm leading-relaxed text-center" style={{ fontFamily: '"Press Start 2P", monospace' }}>
                 {narrativaCorta}
               </p>
             </div>
 
             <TimingBar
               isActive={timingActivo}
-              duration={fase.tiempoLimite}
-              timingWindow={fase.timingWindow}
-              onComplete={handleTimingComplete}
+              totalTime={gol.tiempoGlobalMaximo}
+              remainingTime={tiempoRestante}
             />
 
             <DecisionOptions
@@ -208,10 +206,7 @@ export function Game({ onBackToMenu }: GameProps) {
               isTimingActive={timingActivo}
             />
 
-            <p
-              className="text-yellow-400 text-[10px] md:text-xs text-center animate-pulse"
-              style={{ fontFamily: '"Press Start 2P", monospace' }}
-            >
+            <p className="text-yellow-400 text-[10px] md:text-xs text-center animate-pulse" style={{ fontFamily: '"Press Start 2P", monospace' }}>
               ¡Elige rápido!
             </p>
           </div>
@@ -222,23 +217,18 @@ export function Game({ onBackToMenu }: GameProps) {
             <div className="bg-black/90 border-4 border-white rounded-lg p-4">
               <h3
                 className={`text-lg mb-3 text-center ${opcionSeleccionada?.correcta ? 'text-green-400' : 'text-red-400'}`}
-                style={{
-                  fontFamily: '"Press Start 2P", monospace',
-                  textShadow: '3px 3px 0px #000'
-                }}
+                style={{ fontFamily: '"Press Start 2P", monospace', textShadow: '2px 2px 0px #000' }}
               >
                 {opcionSeleccionada?.correcta ? '¡BIEN HECHO!' : '¡FALLASTE!'}
               </h3>
-              <p
-                className="text-white text-sm leading-relaxed text-center"
-                style={{
-                  fontFamily: '"Press Start 2P", monospace',
-                  lineHeight: '1.6',
-                  textShadow: '2px 2px 0px #000'
-                }}
-              >
+              <p className="text-white text-sm leading-relaxed text-center" style={{ fontFamily: '"Press Start 2P", monospace', lineHeight: '1.5', textShadow: '2px 2px 0px #000' }}>
                 {mensajeResultado}
               </p>
+              {mensajeDialogo && (
+                <p className="mt-3 text-center text-cyan-300 text-xs border-t-2 border-cyan-300/40 pt-2 italic" style={{ fontFamily: '"Press Start 2P", monospace', lineHeight: '1.5', textShadow: '2px 2px 0px #000' }}>
+                  “{mensajeDialogo}”
+                </p>
+              )}
             </div>
           </div>
         )}
