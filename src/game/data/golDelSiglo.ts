@@ -46,7 +46,7 @@ export const golDelSiglo: Gol = {
       titulo: 'EL PASE',
       descripcion: 'Enrique pasa a Maradona',
       narrativa: 'Enrique da un pase sencillo, casi horizontal, hacia la derecha, donde está Diego Maradona...',
-      primerPlano: { personaje: 'Héctor Enrique', dialogo: 'Le daré un pase de gol al Diego', spriteCloseUp: '/sprites/enrique_closeup.png' },
+      // primerPlano: { personaje: 'Héctor Enrique', dialogo: 'Le daré un pase de gol al Diego', spriteCloseUp: '/sprites/enrique_closeup.png' },
       opciones: [
         { id: 'opcion_recibir', texto: 'Pasar a Maradona', correcta: true, resultado: 'sigue', descripcionExito: 'Maradona controla la pelota con la derecha.' },
         { id: 'opcion_retrasar', texto: 'Retener y esperar', correcta: false, resultado: 'pierde', descripcionFallo: 'La defensa inglesa lo presiona y pierde el balón.' },
