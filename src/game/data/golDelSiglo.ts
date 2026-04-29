@@ -62,16 +62,31 @@ export const golDelSiglo: Gol = {
       tipo: 'intro',
       titulo: 'LA RECUPERACIÓN',
       descripcion: 'Cuciuffo recupera y pasa a Enrique',
-      narrativa: 'Recuperación de José Luis Cuciuffo tras un error de Peter Beardsley. Se la pasa al Negro Enrique.',
+      narrativa: 'José Luis Cuciuffo recupera la pelota tras un error inglés y se la entrega al Negro Enrique, que levanta la cabeza para decidir.',
       tiempoLimite: 3000,
       timingWindow: { inicio: 0, fin: 100 },
       opciones: [
         {
-          id: 'opcion_continuar',
-          texto: 'Continuar',
+          id: 'opcion_pasar_maradona',
+          texto: 'Pasar a Maradona',
           correcta: true,
           resultado: 'sigue',
+          dialogo: 'Se la doy al Diego',
           descripcionExito: 'Enrique da un pase sencillo, casi horizontal, hacia la derecha...'
+        },
+        {
+          id: 'opcion_devolver_cuciuffo',
+          texto: 'Devolver a Cuciuffo',
+          correcta: false,
+          resultado: 'pierde',
+          descripcionFallo: 'La jugada se enfría.'
+        },
+        {
+          id: 'opcion_despejar',
+          texto: 'Despejar',
+          correcta: false,
+          resultado: 'pierde',
+          descripcionFallo: 'Argentina pierde la posesión.'
         }
       ]
     },

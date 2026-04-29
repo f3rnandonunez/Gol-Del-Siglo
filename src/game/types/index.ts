@@ -7,6 +7,7 @@ export interface Opcion {
   texto: string;
   correcta: boolean;
   resultado: 'sigue' | 'pierde' | 'gol';
+  dialogo?: string;
   descripcionExito?: string;
   descripcionFallo?: string;
 }

@@ -11,11 +11,14 @@ interface GameProps {
   onBackToMenu: () => void;
 }
 
+const RESULT_DISPLAY_DURATION = 1800;
+
 export function Game({ onBackToMenu }: GameProps) {
   const [gol] = useState<Gol>(golDelSiglo);
   const [faseActual, setFaseActual] = useState(0);
   const [estado, setEstado] = useState<'decision' | 'resultado' | 'victoria' | 'derrota'>('decision');
   const [mensajeResultado, setMensajeResultado] = useState('');
+  const [mensajeDialogo, setMensajeDialogo] = useState('');
   const [timingActivo, setTimingActivo] = useState(false);
   const [opcionSeleccionada, setOpcionSeleccionada] = useState<Opcion | null>(null);
   const [animacionExito, setAnimacionExito] = useState(false);
@@ -24,23 +27,21 @@ export function Game({ onBackToMenu }: GameProps) {
   const fase: Fase = gol.fases[faseActual];
   const [spritesListos, setSpritesListos] = useState(true);
 
-  // Iniciar la fase - se ejecuta cada vez que cambia la fase
   useEffect(() => {
     setEstado('decision');
     setOpcionSeleccionada(null);
     setMensajeResultado('');
+    setMensajeDialogo('');
     setAnimacionExito(false);
     setAnimacionFallo(false);
     setSpritesListos(true);
 
-    // Activar timing después de un pequeño delay para permitir que el usuario vea la pantalla
     const timingTimeout = setTimeout(() => {
       setTimingActivo(true);
     }, 500);
 
     return () => clearTimeout(timingTimeout);
   }, [faseActual]);
-
 
   const handleTimingComplete = useCallback(() => {
     if (estado === 'decision' && !opcionSeleccionada) {
@@ -49,27 +50,27 @@ export function Game({ onBackToMenu }: GameProps) {
     }
   }, [estado, opcionSeleccionada]);
 
-  // Manejar seleccion de opcion
   const handleOptionSelect = useCallback((opcion: Opcion) => {
     if (!timingActivo) return;
-    
+
     setOpcionSeleccionada(opcion);
     setTimingActivo(false);
     setEstado('resultado');
+    setMensajeDialogo(opcion.dialogo || '');
 
     if (opcion.correcta) {
       setAnimacionExito(true);
       setMensajeResultado(opcion.descripcionExito || '¡Excelente decision!');
-      
+
       setTimeout(() => {
         setAnimacionExito(false);
         if (opcion.resultado === 'gol') {
           setEstado('victoria');
         } else {
-          setFaseActual(prev => prev + 1);
+          setFaseActual((prev) => prev + 1);
           setOpcionSeleccionada(null);
         }
-      }, 2500);
+      }, RESULT_DISPLAY_DURATION);
     } else {
       setAnimacionFallo(true);
       setMensajeResultado(opcion.descripcionFallo || '¡Mala decision! Perdiste la pelota.');
@@ -80,83 +81,87 @@ export function Game({ onBackToMenu }: GameProps) {
     }
   }, [timingActivo]);
 
-  // Reiniciar el juego
   const handleRetry = useCallback(() => {
     setFaseActual(0);
     setEstado('decision');
     setMensajeResultado('');
+    setMensajeDialogo('');
     setTimingActivo(true);
     setOpcionSeleccionada(null);
     setAnimacionExito(false);
     setAnimacionFallo(false);
   }, []);
 
-  return (
-    <div className="h-screen bg-gradient-to-b from-green-800 to-green-900 relative overflow-hidden flex flex-col">
-      {/* Fondo del campo */}
-      <div 
-        className="absolute inset-0 opacity-30"
-        style={{
-          backgroundImage: 'url(/sprites/campo_futbol.png)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center'
-        }}
-      />
+  const narrativaCorta =
+    fase.narrativa
+      .split(/[.!?]/)
+      .map((segmento) => segmento.trim())
+      .find(Boolean) || fase.narrativa;
 
-      {/* Header con info del partido */}
-      <div className="relative z-10 bg-black/70 border-b-2 border-white px-4 py-2 flex-shrink-0">
-        <div className="max-w-full flex justify-between items-center">
-          <div className="text-white">
-            <h1 
-              className="text-lg md:text-xl font-bold text-yellow-400"
+  return (
+    <div className="h-screen flex flex-col bg-black overflow-hidden">
+      <div className="relative flex-[3] overflow-hidden">
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage: 'url(/sprites/campo_futbol.png)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center'
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/45" />
+
+        <div className="absolute top-0 left-0 right-0 z-20 bg-black/55 border-b-2 border-white/60 px-4 py-2">
+          <div className="flex justify-between items-center text-white">
+            <div>
+              <h1
+                className="text-sm md:text-base text-yellow-300"
+                style={{ fontFamily: '"Press Start 2P", monospace' }}
+              >
+                {gol.titulo}
+              </h1>
+              <p
+                className="text-[10px] md:text-xs text-gray-300 mt-1"
+                style={{ fontFamily: '"Press Start 2P", monospace' }}
+              >
+                {gol.partido}
+              </p>
+            </div>
+            <p
+              className="text-[10px] md:text-xs text-right"
               style={{ fontFamily: '"Press Start 2P", monospace' }}
             >
-              {gol.titulo}
-            </h1>
-            <p 
-              className="text-xs text-gray-300 mt-0.5"
-              style={{ fontFamily: '"Press Start 2P", monospace' }}
-            >
-              {gol.partido}
+              Fase {faseActual + 1}/{gol.fases.length}
             </p>
           </div>
-          <div 
-            className="text-white text-right"
-            style={{ fontFamily: '"Press Start 2P", monospace' }}
-          >
-            <p className="text-xs">Fase {faseActual + 1} / {gol.fases.length}</p>
-            <p className="text-xs text-gray-400 mt-0.5">{gol.autor.nombre}</p>
-          </div>
         </div>
-      </div>
 
-      {/* Area principal del juego - flex para distribuir espacio */}
-      <div className="relative z-10 flex-1 flex flex-col items-center justify-between overflow-hidden p-3">
-        
-        {/* Sprites de personajes - RIVAL IZQUIERDA, MARADONA DERECHA (enfrentados) */}
-        <div className="flex justify-center items-end gap-12 md:gap-16 flex-shrink-0">
-          {/* Efecto de flash en exito */}
-          {animacionExito && (
-            <div className="absolute inset-0 bg-green-400/30 animate-pulse z-20 pointer-events-none" />
-          )}
-          {/* Efecto de flash en fallo */}
-          {animacionFallo && (
-            <div className="absolute inset-0 bg-red-600/40 animate-pulse z-20 pointer-events-none" />
-          )}
+        {animacionExito && (
+          <div className="absolute inset-0 bg-green-400/30 animate-pulse z-10 pointer-events-none" />
+        )}
+        {animacionFallo && (
+          <div className="absolute inset-0 bg-red-600/40 animate-pulse z-10 pointer-events-none" />
+        )}
 
-          {/* Rival (izquierda) - solo si sprites están listos */}
+        <div className="absolute inset-0 z-20">
           {spritesListos && fase.rival && estado !== 'victoria' && estado !== 'derrota' && (
-            <div className="relative">
-              <img 
+            <div className="absolute left-[22%] bottom-8 md:bottom-10 transform -translate-x-1/2 text-center">
+              <img
                 src={`/sprites/${fase.rival.sprite}.png`}
                 alt={fase.rival.nombre}
-                className={`w-24 h-24 md:w-32 md:h-32 object-contain ${estado === 'decision' && spritesListos ? 'animate-bounce' : ''}`}
-                style={{ 
+                onError={(e) => {
+                  if (e.currentTarget.src.includes("maradona_izq.png")) return;
+                  e.currentTarget.src = "/sprites/maradona_izq.png";
+                }}
+                className={`w-36 h-36 md:w-48 md:h-48 object-contain ${
+                  estado === 'decision' && spritesListos ? 'animate-bounce' : ''
+                }`}
+                style={{
                   filter: animacionFallo ? 'brightness(0.5) sepia(1) hue-rotate(-50deg) saturate(5)' : 'none'
                 }}
               />
-              <p 
-                className="text-center text-white text-xs mt-1 bg-red-900/70 px-2 py-0.5 rounded"
+              <p
+                className="text-white text-[10px] md:text-xs mt-1 bg-red-900/70 px-2 py-0.5 rounded inline-block"
                 style={{ fontFamily: '"Press Start 2P", monospace' }}
               >
                 {fase.rival.nombre}
@@ -164,102 +169,104 @@ export function Game({ onBackToMenu }: GameProps) {
             </div>
           )}
 
-          {/* Jugador protagonista (derecha) - Maradona mirando a la izquierda */}
-          <div className="relative">
-            <img 
-              src="/sprites/maradona_izq.png" 
+          <div className="absolute left-[78%] bottom-8 md:bottom-10 transform -translate-x-1/2 text-center">
+            <img
+              src="/sprites/maradona_izq.png"
               alt={gol.autor.nombre}
-              className={`w-28 h-28 md:w-40 md:h-40 object-contain transition-all duration-300 ${
+              onError={(e) => {
+                if (e.currentTarget.src.includes("maradona_izq.png")) return;
+                e.currentTarget.src = "/sprites/maradona_izq.png";
+              }}
+              className={`w-40 h-40 md:w-56 md:h-56 object-contain transition-all duration-300 ${
                 estado === 'decision' && spritesListos ? 'animate-pulse' : ''
               } ${animacionExito ? 'scale-110' : ''}`}
-              style={{ 
-                filter: animacionExito ? 'drop-shadow(0 0 20px #00ff00)' : 
-                        animacionFallo ? 'grayscale(0.7) brightness(0.6)' : 'none'
+              style={{
+                filter: animacionExito
+                  ? 'drop-shadow(0 0 20px #00ff00)'
+                  : animacionFallo
+                    ? 'grayscale(0.7) brightness(0.6)'
+                    : 'none'
               }}
             />
-            <p 
-              className="text-center text-white text-xs mt-1 bg-blue-600/70 px-2 py-0.5 rounded"
+            <p
+              className="text-white text-[10px] md:text-xs mt-1 bg-blue-600/70 px-2 py-0.5 rounded inline-block"
               style={{ fontFamily: '"Press Start 2P", monospace' }}
             >
               {gol.autor.apodo}
             </p>
           </div>
         </div>
+      </div>
 
-        {/* Narrativa + Barra de timing + Opciones - TODO JUNTO */}
-        {estado === 'decision' && spritesListos && (
-          <div className="w-full max-w-2xl space-y-3 flex-1 flex flex-col items-center justify-center overflow-hidden px-2">
-            {/* Texto de la narrativa completo */}
-            <NarrativeDisplay 
-              texto={fase.narrativa}
-              titulo={fase.titulo}
-            />
-            
-            {/* Barra de timing */}
-            <TimingBar 
-              isActive={timingActivo}
-              duration={fase.tiempoLimite}
-              timingWindow={fase.timingWindow}
-              onComplete={handleTimingComplete}
-            />
-            
-            {/* Opciones de decision */}
-            <DecisionOptions 
-              opciones={fase.opciones}
-              onSelect={handleOptionSelect}
-              disabled={!!opcionSeleccionada}
-              isTimingActive={timingActivo}
-            />
-            
-            <p 
-              className="text-yellow-400 text-xs text-center animate-pulse"
-              style={{ fontFamily: '"Press Start 2P", monospace' }}
-            >
-              ¡Elige rapido!
-            </p>
-          </div>
-        )}
+      <div className="flex-[1] bg-black/95 border-t-4 border-white px-3 py-3 md:px-4 md:py-4 overflow-y-auto">
+        <div className="w-full max-w-4xl mx-auto space-y-3">
+          <NarrativeDisplay texto={`${narrativaCorta}.`} titulo={fase.titulo} />
 
-        {/* Mensaje de resultado (exito o fallo) */}
-        {estado === 'resultado' && (
-          <div className="w-full max-w-2xl px-2 flex-1 flex items-center justify-center">
-            <div className="bg-black/80 border-4 border-white rounded-lg p-4 max-w-2xl">
-              <h3 
-                className={`text-lg mb-3 text-center ${opcionSeleccionada?.correcta ? 'text-green-400' : 'text-red-400'}`}
+          {estado === 'decision' && spritesListos && (
+            <div className="space-y-3">
+              <TimingBar
+                isActive={timingActivo}
+                duration={fase.tiempoLimite}
+                timingWindow={fase.timingWindow}
+                onComplete={handleTimingComplete}
+              />
+              <DecisionOptions
+                opciones={fase.opciones}
+                onSelect={handleOptionSelect}
+                disabled={!!opcionSeleccionada}
+                isTimingActive={timingActivo}
+              />
+            </div>
+          )}
+
+          {estado === 'resultado' && (
+            <div className="bg-black/80 border-4 border-white rounded-lg p-3">
+              <h3
+                className={`text-sm mb-2 text-center ${opcionSeleccionada?.correcta ? 'text-green-400' : 'text-red-400'}`}
                 style={{
                   fontFamily: '"Press Start 2P", monospace',
-                  textShadow: '3px 3px 0px #000'
+                  textShadow: '2px 2px 0px #000'
                 }}
               >
                 {opcionSeleccionada?.correcta ? '¡BIEN HECHO!' : '¡FALLASTE!'}
               </h3>
-              <p 
-                className="text-white text-sm leading-relaxed"
+              <p
+                className="text-white text-xs text-center"
                 style={{
                   fontFamily: '"Press Start 2P", monospace',
-                  lineHeight: '1.6',
+                  lineHeight: '1.5',
                   textShadow: '2px 2px 0px #000'
                 }}
               >
                 {mensajeResultado}
               </p>
+              {mensajeDialogo && (
+                <p
+                  className="mt-3 text-center text-cyan-300 text-xs border-t-2 border-cyan-300/40 pt-2 italic"
+                  style={{
+                    fontFamily: '"Press Start 2P", monospace',
+                    lineHeight: '1.5',
+                    textShadow: '2px 2px 0px #000'
+                  }}
+                >
+                  “{mensajeDialogo}”
+                </p>
+              )}
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
-      {/* Pantalla de Victoria */}
       {estado === 'victoria' && (
-        <GoalCelebration 
+        <GoalCelebration
           titulo={gol.titulo}
           subtitulo={`${gol.autor.nombre} - ${gol.partido}`}
           onContinue={handleRetry}
         />
       )}
 
-      {/* Pantalla de Derrota */}
       {estado === 'derrota' && (
-        <GameOver 
+        <GameOver
           razon={mensajeResultado}
           faseAlcanzada={faseActual}
           totalFases={gol.fases.length}
