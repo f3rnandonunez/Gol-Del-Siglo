@@ -45,7 +45,7 @@ export const golDelSiglo: Gol = {
     apodo: 'El Diego',
     sprite: 'maradona'
   },
-  assistente: {
+  asistente: {
     nombre: 'Héctor Enrique',
     apodo: 'El Negro'
   },
@@ -71,7 +71,7 @@ export const golDelSiglo: Gol = {
           texto: 'Continuar',
           correcta: true,
           resultado: 'sigue',
-          descripcionExito: '«Se la doy al Diego». Enrique da un pase sencillo, casi horizontal, hacia la derecha...'
+          descripcionExito: "«Se la doy al Diego». Enrique da un pase sencillo, casi horizontal, hacia la derecha..."
         }
       ]
     },
@@ -85,8 +85,8 @@ export const golDelSiglo: Gol = {
       timingWindow: { inicio: 25, fin: 75 },
       primerPlano: {
         personaje: 'Héctor Enrique',
-        dialogo: 'Le daré un pase de gol al Diego',
-        spriteCloseUp: '/sprites/enrique_closeup.png'
+        dialogo: 'Le daré un pase de gol al Diego',   // Placeholder: texto real después
+        spriteCloseUp: '/sprites/enrique_closeup.png'  // Placeholder: luego GIF animado
       },
       opciones: [
         {
@@ -117,6 +117,11 @@ export const golDelSiglo: Gol = {
         nombre: 'Gary Stevens',
         sprite: 'stevens'
       },
+      primerPlano: {
+        personaje: 'Gary Stevens',
+        dialogo: 'Intenté cerrarle el paso, pero ya era tarde',
+        spriteCloseUp: '/sprites/stevens_closeup.png'
+      },
       opciones: [
         {
           id: 'opcion_giro',
@@ -145,6 +150,11 @@ export const golDelSiglo: Gol = {
       rival: {
         nombre: 'Peter Reid',
         sprite: 'reid'
+      },
+      primerPlano: {
+        personaje: 'Peter Reid',
+        dialogo: 'No pude seguirle el ritmo',
+        spriteCloseUp: '/sprites/reid_closeup.png'
       },
       opciones: [
         {
@@ -175,6 +185,11 @@ export const golDelSiglo: Gol = {
         nombre: 'Terry Butcher',
         sprite: 'butcher'
       },
+      primerPlano: {
+        personaje: 'Terry Butcher',
+        dialogo: 'Intenté derribarlo, pero fue imposible',
+        spriteCloseUp: '/sprites/butcher_closeup.png'
+      },
       opciones: [
         {
           id: 'opcion_cambio',
@@ -203,6 +218,11 @@ export const golDelSiglo: Gol = {
       rival: {
         nombre: 'Terry Fenwick',
         sprite: 'fenwick'
+      },
+      primerPlano: {
+        personaje: 'Terry Fenwick',
+        dialogo: 'Me dejó en el camino con un amague',
+        spriteCloseUp: '/sprites/fenwick_closeup.png'
       },
       opciones: [
         {
@@ -233,6 +253,11 @@ export const golDelSiglo: Gol = {
         nombre: 'Peter Shilton',
         sprite: 'shilton'
       },
+      primerPlano: {
+        personaje: 'Peter Shilton',
+        dialogo: 'Salió a achicar, pero fue imposible',
+        spriteCloseUp: '/sprites/shilton_closeup.png'
+      },
       opciones: [
         {
           id: 'opcion_driblar',
@@ -258,6 +283,11 @@ export const golDelSiglo: Gol = {
       narrativa: 'Con el arco vacío y sin más rivales, Maradona empuja la pelota suavemente con la zurda al fondo de la red. La jugada completa duró unos 10-11 segundos, Diego tocó la pelota 11-12 veces, recorrió unos 50-60 metros y gambeteó a 5 jugadores ingleses.',
       tiempoLimite: 5000,
       timingWindow: { inicio: 0, fin: 100 },
+      primerPlano: {
+        personaje: 'Diego Maradona',
+        dialogo: '¡Gol del siglo!',
+        spriteCloseUp: '/sprites/maradona_closeup.png'
+      },
       opciones: [
         {
           id: 'opcion_celebrar',
