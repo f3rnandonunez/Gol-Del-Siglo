@@ -24,9 +24,11 @@ export function Game({ onBackToMenu }: GameProps) {
   const [animacionFallo, setAnimacionFallo] = useState(false);
   const [mostrarPrimerPlano, setMostrarPrimerPlano] = useState(false);
   const [infoPrimerPlano, setInfoPrimerPlano] = useState<{ personaje: string; dialogo: string; spriteCloseUp: string } | null>(null);
+  const [timerIniciado, setTimerIniciado] = useState(false); // Nuevo: controla si el temporizador ya empezó
 
   const fase: Fase = gol.fases[faseActual];
-  const timingActivo = estado === 'decision' && tiempoRestante > 0 && !mostrarPrimerPlano;
+  // El timer está activo solo si se ha iniciado, el juego está en decisión, hay tiempo y no hay primer plano
+  const timingActivo = timerIniciado && estado === 'decision' && tiempoRestante > 0 && !mostrarPrimerPlano;
 
   // Mezclar opciones
   const opcionesMezcladas = useMemo(() => {
@@ -45,7 +47,7 @@ export function Game({ onBackToMenu }: GameProps) {
     .map((s) => s.trim())
     .find(Boolean) || fase.narrativa;
 
-  // Reset al cambiar de fase
+  // Reset al cambiar de fase (pero no se reinicia el timer si ya estaba iniciado)
   useEffect(() => {
     setEstado('decision');
     setOpcionSeleccionada(null);
@@ -57,7 +59,15 @@ export function Game({ onBackToMenu }: GameProps) {
     setInfoPrimerPlano(null);
   }, [faseActual]);
 
-  // Timer global
+  // Iniciar el temporizador cuando se alcanza la fase 2 (Maradona controla)
+  useEffect(() => {
+    if (!timerIniciado && faseActual >= 2) {
+      setTimerIniciado(true);
+      setTiempoRestante(gol.tiempoGlobalMaximo);
+    }
+  }, [faseActual, timerIniciado, gol.tiempoGlobalMaximo]);
+
+  // Timer global (solo si está iniciado y las condiciones son correctas)
   useEffect(() => {
     if (!timingActivo) return;
     const interval = setInterval(() => {
@@ -68,14 +78,14 @@ export function Game({ onBackToMenu }: GameProps) {
 
   // Derrota por tiempo
   useEffect(() => {
-    if (estado === 'decision' && tiempoRestante <= 0 && !mostrarPrimerPlano) {
+    if (timerIniciado && estado === 'decision' && tiempoRestante <= 0 && !mostrarPrimerPlano) {
       setEstado('derrota');
       setMensajeResultado('Se acabó el tiempo. La jugada no se completó.');
     }
-  }, [estado, tiempoRestante, mostrarPrimerPlano]);
+  }, [estado, tiempoRestante, mostrarPrimerPlano, timerIniciado]);
 
   const handleOptionSelect = useCallback((opcion: Opcion) => {
-    if (!timingActivo) return;
+    if (!timingActivo && !(faseActual < 2 && opcion.correcta)) return; // Permitir elegir en fases 0-1 incluso sin timer activo
 
     setOpcionSeleccionada(opcion);
     setEstado('resultado');
@@ -111,7 +121,7 @@ export function Game({ onBackToMenu }: GameProps) {
         setEstado('derrota');
       }, 2000);
     }
-  }, [timingActivo, fase.primerPlano]);
+  }, [faseActual, fase.primerPlano, timingActivo]);
 
   const handleRetry = useCallback(() => {
     setFaseActual(0);
@@ -119,6 +129,7 @@ export function Game({ onBackToMenu }: GameProps) {
     setMensajeResultado('');
     setMensajeDialogo('');
     setTiempoRestante(gol.tiempoGlobalMaximo);
+    setTimerIniciado(false); // Reiniciar el flag del timer
     setOpcionSeleccionada(null);
     setAnimacionExito(false);
     setAnimacionFallo(false);
@@ -137,6 +148,9 @@ export function Game({ onBackToMenu }: GameProps) {
       setOpcionSeleccionada(null);
     }
   };
+
+  // La barra de tiempo se muestra solo si el timer ya fue iniciado (faseActual >= 2)
+  const mostrarBarra = timerIniciado && estado === 'decision';
 
   return (
     <div className="h-screen flex flex-col bg-gradient-to-b from-green-800 to-green-900">
@@ -204,7 +218,10 @@ export function Game({ onBackToMenu }: GameProps) {
                 {narrativaCorta}
               </p>
             </div>
-            <TimingBar isActive={timingActivo} totalTime={gol.tiempoGlobalMaximo} remainingTime={tiempoRestante} />
+            {/* Barra de timing condicional: solo si timerIniciado */}
+            {mostrarBarra && (
+              <TimingBar isActive={timingActivo} totalTime={gol.tiempoGlobalMaximo} remainingTime={tiempoRestante} />
+            )}
             <DecisionOptions
               opciones={opcionesMezcladas}
               onSelect={handleOptionSelect}
