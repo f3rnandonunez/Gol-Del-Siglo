@@ -242,28 +242,40 @@ export const golDelSiglo: Gol = {
       ]
     },
     // Dentro de fases: fase_6_shilton
-{
-  id: 'fase_6_shilton',
-  tipo: 'decision',
-  titulo: 'FRENTE AL ARQUERO',
-  // ... resto
-  opciones: [
     {
-      id: 'opcion_driblar',
-      texto: 'Driblar con toque sutil',
-      correcta: true,
-      resultado: 'gol',   // <--- cambiado de 'sigue' a 'gol'
-      descripcionExito: 'Diego lo dribla con un toque sutil de zurda, dejándolo desparramado en el suelo. ¡GOOOOL!'
+      id: 'fase_6_shilton',
+      tipo: 'decision',
+      titulo: 'FRENTE AL ARQUERO',
+      descripcion: 'Peter Shilton achica',
+      narrativa: 'Maradona entra al área grande. El arquero Peter Shilton sale a achicar.',
+      tiempoLimite: 2200,
+      timingWindow: { inicio: 35, fin: 65 },
+      rival: {
+        nombre: 'Peter Shilton',
+        sprite: 'shilton'
+      },
+      primerPlano: {
+        personaje: 'Peter Shilton',
+        dialogo: 'Salió a achicar, pero fue imposible',
+        spriteCloseUp: '/sprites/shilton_closeup.png'
+      },
+      opciones: [
+        {
+          id: 'opcion_driblar',
+          texto: 'Driblar con toque sutil',
+          correcta: true,
+          resultado: 'gol',
+          descripcionExito: 'Diego lo dribla con un toque sutil de zurda, dejándolo desparramado en el suelo. ¡GOOOOL!'
+        },
+        {
+          id: 'opcion_fallo',
+          texto: 'Definir fuerte',
+          correcta: false,
+          resultado: 'pierde',
+          descripcionFallo: 'Shilton ataja el disparo. Gran atajada.'
+        }
+      ]
     },
-    {
-      id: 'opcion_fallo',
-      texto: 'Definir fuerte',
-      correcta: false,
-      resultado: 'pierde',
-      descripcionFallo: 'Shilton ataja el disparo. Gran atajada.'
-    }
-  ]
-},
   ]
 };
 
