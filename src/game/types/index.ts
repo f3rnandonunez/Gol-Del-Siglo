@@ -9,6 +9,13 @@ export interface Opcion {
   resultado: 'sigue' | 'pierde' | 'gol';
   descripcionExito?: string;
   descripcionFallo?: string;
+  dialogo?: string;
+}
+
+export interface PrimerPlano {
+  personaje: string;
+  dialogo: string;
+  spriteCloseUp: string;
 }
 
 export interface Fase {
@@ -17,17 +24,19 @@ export interface Fase {
   titulo: string;
   descripcion: string;
   narrativa: string;
-  tiempoLimite: number; // en milisegundos
-  timingWindow: { inicio: number; fin: number }; // porcentaje 0-100
+  tiempoLimite?: number;
+  timingWindow?: { inicio: number; fin: number };
   opciones: Opcion[];
   rival?: {
     nombre: string;
     sprite: string;
   };
+  primerPlano?: PrimerPlano;
 }
 
 export interface Gol {
   id: string;
+  tiempoGlobalMaximo: number;
   titulo: string;
   subtitulo: string;
   partido: string;
@@ -42,7 +51,7 @@ export interface Gol {
     nombre: string;
     apodo: string;
   };
-  duracion: number; // segundos reales
+  duracion: number;
   distancia: string;
   fases: Fase[];
   escenario: {
@@ -79,7 +88,6 @@ export interface Partido {
   goles: Gol[];
 }
 
-// Estado del juego
 export interface EstadoJuego {
   faseActual: number;
   vidas: number;
