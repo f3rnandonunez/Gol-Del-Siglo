@@ -1,3 +1,4 @@
+import React from 'react';
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import type { Gol, Opcion, Fase } from '../types';
 import { golDelSiglo } from '../data/golDelSiglo';
