@@ -162,22 +162,22 @@ export function Game({ onBackToMenu }: GameProps) {
   };
 
   const segundos = Math.ceil(tiempoRestante / 1000);
-
-  // Placeholder narrativo (repetido 8 veces como en tu collage)
   const textoPlaceholder = narrativaCorta || "1, hacia la derecha, donde está Diego Maradona";
+
+  // Texto dinámico según la fase
+  const preguntaDecide = faseActual === 0 ? "¿QUÉ HIZO CUCIUFFO?" :
+                         faseActual === 1 ? "¿QUÉ HIZO EL NEGRO ENRIQUE?" :
+                         "¿QUÉ HIZO EL DIEGO?";
 
   return (
     <div className="h-screen bg-[#0a0c12] font-['VT323','Courier New',monospace]">
-      {/* DOS COLUMNAS: izquierda (texto) y derecha (sprites, timer, opciones) */}
       <div className="flex h-full">
-        {/* COLUMNA IZQUIERDA: bloque de diálogo */}
+        {/* Columna izquierda: diálogo */}
         <div className="w-1/2 bg-[#0f1120] border-r-2 border-[#c0c0c0] flex flex-col p-4">
-          {/* Fase y nombre del rival arriba */}
           <div className="bg-[#1a1c2a] border border-[#c0c0c0] px-3 py-1 mb-4 flex justify-between text-[#e0e0e0] text-sm">
             <span>FASE {faseActual+1}/{gol.fases.length}</span>
             <span>{fase.rival?.nombre || 'ARGENTINA'}</span>
           </div>
-          {/* Texto narrativo (repetido para simular el collage) */}
           <div className="flex-1 overflow-y-auto text-[#d0d0e0] text-sm leading-relaxed space-y-2">
             {Array(10).fill(textoPlaceholder).map((t, i) => (
               <p key={i}>{t}</p>
@@ -185,7 +185,7 @@ export function Game({ onBackToMenu }: GameProps) {
           </div>
         </div>
 
-        {/* COLUMNA DERECHA: recuadro de sprites, timer, opciones */}
+        {/* Columna derecha: sprites, timer, opciones */}
         <div className="w-1/2 bg-[#0f1120] p-4 flex flex-col">
           {/* Recuadro de sprites */}
           <div className="bg-[#1a1c2a] border-2 border-[#c0c0c0] flex-grow flex items-center justify-center relative min-h-[200px]">
@@ -217,14 +217,14 @@ export function Game({ onBackToMenu }: GameProps) {
             {animacionFallo && <div className="absolute inset-0 bg-red-600/20 animate-pulse pointer-events-none" />}
           </div>
 
-          {/* Timer */}
+          {/* Timer y pregunta dinámica */}
           <div className="mt-4 text-center">
             <div className="text-4xl md:text-5xl text-white font-bold">{segundos}s</div>
-            <div className="text-[#f7d44a] text-xl md:text-2xl animate-pulse">¡DECIDE!</div>
+            <div className="text-[#f7d44a] text-xl md:text-2xl animate-pulse">{preguntaDecide}</div>
           </div>
 
           {/* Opciones */}
-          {estado === 'decision' && !mostrarPrimerPlano && !esIntroAutomatica && (
+          {estado === 'decision' && !mostrarPrimerPlano && !esIntroAutomatica && fase.opciones && fase.opciones.length > 0 && (
             <div className="mt-4 grid grid-cols-2 gap-3">
               {opcionesMezcladas.map((opcion, idx) => {
                 const letra = String.fromCharCode(65 + idx);
@@ -258,7 +258,7 @@ export function Game({ onBackToMenu }: GameProps) {
         </div>
       </div>
 
-      {/* Modal primer plano (igual) */}
+      {/* Modal primer plano */}
       {mostrarPrimerPlano && infoPrimerPlano && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#0a0c12]/90">
           <div className="bg-[#1a1c2a] border-2 border-[#c0c0c0] p-4 text-center max-w-sm w-full mx-4">
