@@ -30,43 +30,124 @@ export const golDelSiglo: Gol = {
   distancia: '60 metros',
   escenario: { estadio: 'Estadio Azteca', ciudad: 'Ciudad de México', spriteFondo: 'azteca_estadio' },
   fases: [
-    // FASE 0: INTRO
+    // FASE 0: Cuciuffo recupera (ahora con decisión)
+{
+  id: 'fase_0_cuciuffo',
+  tipo: 'decision',
+  titulo: 'RECUPERACIÓN',
+  descripcion: 'Cuciuffo recupera el balón',
+  narrativa: 'Recuperación de José Luis Cuciuffo tras un error de Peter Beardsley.',
+  primerPlano: {
+    personaje: 'José Luis Cuciuffo',
+    dialogo: '¡Recuperé! La jugada sigue.',
+    spriteCloseUp: '/sprites/maradona_izq.png' // placeholder
+  },
+  opciones: [
     {
-      id: 'fase_0_start',
-      tipo: 'intro',
-      titulo: 'LA RECUPERACIÓN',
-      descripcion: 'Cuciuffo recupera y pasa a Enrique',
-      narrativa: 'Recuperación de José Luis Cuciuffo tras un error de Peter Beardsley. Se la pasa al Negro Enrique.',
-      opciones: []
+      id: 'opcion_continuar',
+      texto: 'Pasar a Enrique',
+      correcta: true,
+      resultado: 'sigue',
+      descripcionExito: 'Enrique recibe el balón en la mitad.',
+      primerPlanoFallo: undefined
     },
-    // FASE 1: PASE DE ENRIQUE
     {
-      id: 'fase_1_pase',
-      tipo: 'decision',
-      titulo: 'EL PASE',
-      descripcion: 'Enrique pasa a Maradona',
-      narrativa: 'Enrique da un pase sencillo, casi horizontal, hacia la derecha, donde está Diego Maradona...',
-      primerPlano: {
-        personaje: 'Héctor Enrique',
-        dialogo: 'Le daré un pase de gol al Diego',
+      id: 'opcion_retener',
+      texto: 'Retener y esperar',
+      correcta: false,
+      resultado: 'pierde',
+      descripcionFallo: 'La defensa lo presiona y pierde el balón.',
+      primerPlanoFallo: {
+        personaje: 'Defensa inglesa',
+        dialogo: '¡Te comiste el tiempo!',
         spriteCloseUp: '/sprites/maradona_izq.png'
-      },
-      opciones: [
-        { id: 'opcion_recibir', texto: 'Pasar a Maradona', correcta: true, resultado: 'sigue', descripcionExito: 'Maradona controla la pelota con la derecha.' },
-        { 
-          id: 'opcion_retrasar', texto: 'Retener y esperar', correcta: false, resultado: 'pierde', descripcionFallo: 'La defensa inglesa lo presiona y pierde el balón.',
-          primerPlanoFallo: { personaje: 'Defensa inglesa', dialogo: '¡No puedes perder tiempo aquí!', spriteCloseUp: '/sprites/maradona_izq.png' }
-        },
-        { 
-          id: 'opcion_lateral', texto: 'Abrir a la banda derecha', correcta: false, resultado: 'pierde', descripcionFallo: 'El pase es interceptado.',
-          primerPlanoFallo: { personaje: 'Terry Butcher', dialogo: 'Pase fácil de leer.', spriteCloseUp: '/sprites/maradona_izq.png' }
-        },
-        { 
-          id: 'opcion_devolver', texto: 'Devolver a Cuciuffo', correcta: false, resultado: 'pierde', descripcionFallo: 'La jugada se enfría.',
-          primerPlanoFallo: { personaje: 'Cuciuffo', dialogo: 'Debiste seguir hacia adelante.', spriteCloseUp: '/sprites/maradona_izq.png' }
-        }
-      ]
+      }
     },
+    {
+      id: 'opcion_rechazar',
+      texto: 'Rechazar al fondo',
+      correcta: false,
+      resultado: 'pierde',
+      descripcionFallo: 'El despeje es corto y lo recupera Inglaterra.',
+      primerPlanoFallo: {
+        personaje: 'Peter Beardsley',
+        dialogo: 'Mal despeje.',
+        spriteCloseUp: '/sprites/maradona_izq.png'
+      }
+    },
+    {
+      id: 'opcion_perder_tiempo',
+      texto: 'Perder tiempo',
+      correcta: false,
+      resultado: 'pierde',
+      descripcionFallo: 'La indecisión permite que lo roben.',
+      primerPlanoFallo: {
+        personaje: 'Gary Stevens',
+        dialogo: '¡Rápido, presión!',
+        spriteCloseUp: '/sprites/maradona_izq.png'
+      }
+    }
+  ]
+},
+// FASE 1: Pase de Enrique (ya tenía opciones, pero vamos a estandarizar y agregar primeros planos de fallo)
+{
+  id: 'fase_1_pase',
+  tipo: 'decision',
+  titulo: 'EL PASE',
+  descripcion: 'Enrique pasa a Maradona',
+  narrativa: 'Enrique da un pase sencillo, casi horizontal, hacia la derecha, donde está Diego Maradona...',
+  primerPlano: {
+    personaje: 'Héctor Enrique',
+    dialogo: 'Le daré un pase de gol al Diego',
+    spriteCloseUp: '/sprites/maradona_izq.png'
+  },
+  opciones: [
+    {
+      id: 'opcion_recibir',
+      texto: 'Pasar a Maradona',
+      correcta: true,
+      resultado: 'sigue',
+      descripcionExito: 'Maradona controla la pelota.',
+      primerPlanoFallo: undefined
+    },
+    {
+      id: 'opcion_retrasar',
+      texto: 'Retener y esperar',
+      correcta: false,
+      resultado: 'pierde',
+      descripcionFallo: 'Pierde el balón.',
+      primerPlanoFallo: {
+        personaje: 'Defensa inglesa',
+        dialogo: '¡No esperes!',
+        spriteCloseUp: '/sprites/maradona_izq.png'
+      }
+    },
+    {
+      id: 'opcion_lateral',
+      texto: 'Abrir a la banda derecha',
+      correcta: false,
+      resultado: 'pierde',
+      descripcionFallo: 'Pase interceptado.',
+      primerPlanoFallo: {
+        personaje: 'Terry Butcher',
+        dialogo: 'Pase fácil.',
+        spriteCloseUp: '/sprites/maradona_izq.png'
+      }
+    },
+    {
+      id: 'opcion_devolver',
+      texto: 'Devolver a Cuciuffo',
+      correcta: false,
+      resultado: 'pierde',
+      descripcionFallo: 'La jugada se enfría.',
+      primerPlanoFallo: {
+        personaje: 'Cuciuffo',
+        dialogo: 'No debiste devolver',
+        spriteCloseUp: '/sprites/maradona_izq.png'
+      }
+    }
+  ]
+},
     // FASE 2: STEVENS
     {
       id: 'fase_2_stevens',
