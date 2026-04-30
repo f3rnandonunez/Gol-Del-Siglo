@@ -249,11 +249,11 @@ export function Game({ onBackToMenu }: GameProps) {
             )}
             {!esIntroAutomatica && (
               <DecisionOptions
-                opciones={opcionesMezcladas}
-                onSelect={handleOptionSelect}
-                disabled={!!opcionSeleccionada}
-                isTimingActive={timingActivo}
-              />
+  opciones={opcionesMezcladas}
+  onSelect={handleOptionSelect}
+  disabled={!!opcionSeleccionada}
+  isTimingActive={timerIniciado ? timingActivo : true}
+/>
             )}
             <p className="text-yellow-400 text-[10px] md:text-xs text-center animate-pulse" style={{ fontFamily: '"Press Start 2P", monospace' }}>
               {esIntroAutomatica ? 'Cargando...' : '¡Elige rápido!'}
