@@ -30,7 +30,7 @@ export const golDelSiglo: Gol = {
   distancia: '60 metros',
   escenario: { estadio: 'Estadio Azteca', ciudad: 'Ciudad de México', spriteFondo: 'azteca_estadio' },
   fases: [
-    // FASE 0: INTRO AUTOMÁTICA
+    // FASE 0: INTRO AUTOMÁTICA (sin primer plano por ahora)
     {
       id: 'fase_0_start',
       tipo: 'intro',
@@ -39,17 +39,22 @@ export const golDelSiglo: Gol = {
       narrativa: 'Recuperación de José Luis Cuciuffo tras un error de Peter Beardsley. Se la pasa al Negro Enrique.',
       opciones: []
     },
-    // FASE 1: PASE DE ENRIQUE
+    // FASE 1: PASE DE ENRIQUE (con primer plano en acierto)
     {
       id: 'fase_1_pase',
       tipo: 'decision',
       titulo: 'EL PASE',
       descripcion: 'Enrique pasa a Maradona',
-      narrativa: 'Enrique da un pase sencillo, casi horizontal, hacia la derecha, donde está Diego Maradona...',
+      narrativa: 'Enrique da un pase sencillo, casi horizontal, hacia la derecha...',
+      primerPlano: {
+        personaje: 'Héctor Enrique',
+        dialogo: 'Le daré un pase de gol al Diego',
+        spriteCloseUp: '/sprites/maradona_izq.png'   // placeholder
+      },
       opciones: [
-        { id: 'opcion_recibir', texto: 'Pasar a Maradona', correcta: true, resultado: 'sigue', descripcionExito: 'Maradona controla la pelota con la derecha.' },
-        { id: 'opcion_retrasar', texto: 'Retener y esperar', correcta: false, resultado: 'pierde', descripcionFallo: 'La defensa inglesa lo presiona y pierde el balón.' },
-        { id: 'opcion_lateral', texto: 'Abrir a la banda derecha', correcta: false, resultado: 'pierde', descripcionFallo: 'El pase es interceptado.' },
+        { id: 'opcion_recibir', texto: 'Pasar a Maradona', correcta: true, resultado: 'sigue', descripcionExito: 'Maradona controla la pelota.' },
+        { id: 'opcion_retrasar', texto: 'Retener y esperar', correcta: false, resultado: 'pierde', descripcionFallo: 'Pierde el balón.' },
+        { id: 'opcion_lateral', texto: 'Abrir a la banda derecha', correcta: false, resultado: 'pierde', descripcionFallo: 'Pase interceptado.' },
         { id: 'opcion_devolver', texto: 'Devolver a Cuciuffo', correcta: false, resultado: 'pierde', descripcionFallo: 'La jugada se enfría.' }
       ]
     },
@@ -59,13 +64,18 @@ export const golDelSiglo: Gol = {
       tipo: 'decision',
       titulo: 'EL PRIMER ESCOLLO',
       descripcion: 'Gary Stevens presiona',
-      narrativa: 'Maradona controla la pelota con la derecha. Inmediatamente, Gary Stevens se le viene encima.',
+      narrativa: 'Maradona controla. Gary Stevens se le viene encima.',
       rival: { nombre: 'Gary Stevens', sprite: 'stevens' },
+      primerPlano: {
+        personaje: 'Gary Stevens',
+        dialogo: 'Intenté cerrarle el paso, pero ya era tarde',
+        spriteCloseUp: '/sprites/maradona_izq.png'
+      },
       opciones: [
-        { id: 'opcion_giro', texto: 'Giro rápido (ruleta)', correcta: true, resultado: 'sigue', descripcionExito: 'Diego hace un giro y se escapa.' },
-        { id: 'opcion_freno', texto: 'Frenar y proteger la pelota', correcta: false, resultado: 'pierde', descripcionFallo: 'Stevens le roba el balón.' },
-        { id: 'opcion_pase_atras', texto: 'Pase atrás al mediocampo', correcta: false, resultado: 'pierde', descripcionFallo: 'La jugada se vuelve predecible.' },
-        { id: 'opcion_tiro_lejano', texto: 'Disparar desde lejos', correcta: false, resultado: 'pierde', descripcionFallo: 'El tiro es bloqueado.' }
+        { id: 'opcion_giro', texto: 'Giro rápido', correcta: true, resultado: 'sigue', descripcionExito: 'Se escapa.' },
+        { id: 'opcion_freno', texto: 'Frenar', correcta: false, resultado: 'pierde', descripcionFallo: 'Le roba el balón.' },
+        { id: 'opcion_pase_atras', texto: 'Pase atrás', correcta: false, resultado: 'pierde', descripcionFallo: 'Pase cortado.' },
+        { id: 'opcion_tiro_lejano', texto: 'Disparar desde lejos', correcta: false, resultado: 'pierde', descripcionFallo: 'Bloqueado.' }
       ]
     },
     // FASE 3: REID
@@ -74,13 +84,18 @@ export const golDelSiglo: Gol = {
       tipo: 'decision',
       titulo: 'EL SEGUNDO RIVAL',
       descripcion: 'Peter Reid cierra el paso',
-      narrativa: 'Sin perder velocidad, Maradona avanza y Peter Reid sale a cerrarle el paso.',
+      narrativa: 'Maradona avanza y Reid sale a cerrarle.',
       rival: { nombre: 'Peter Reid', sprite: 'reid' },
+      primerPlano: {
+        personaje: 'Peter Reid',
+        dialogo: 'No pude seguirle el ritmo',
+        spriteCloseUp: '/sprites/maradona_izq.png'
+      },
       opciones: [
-        { id: 'opcion_quiebre', texto: 'Quiebre sutil', correcta: true, resultado: 'sigue', descripcionExito: 'Maradona hace un quiebre y deja clavado a Reid.' },
-        { id: 'opcion_velocidad', texto: 'Intentar ganar por velocidad', correcta: false, resultado: 'pierde', descripcionFallo: 'Reid usa el cuerpo y lo bloquea.' },
-        { id: 'opcion_cambio_pierna', texto: 'Cambiar de pierna y frenar', correcta: false, resultado: 'pierde', descripcionFallo: 'Reid anticipa y recupera.' },
-        { id: 'opcion_centro', texto: 'Centrar al área', correcta: false, resultado: 'pierde', descripcionFallo: 'El centro es despejado.' }
+        { id: 'opcion_quiebre', texto: 'Quiebre sutil', correcta: true, resultado: 'sigue', descripcionExito: 'Lo deja clavado.' },
+        { id: 'opcion_velocidad', texto: 'Ganar por velocidad', correcta: false, resultado: 'pierde', descripcionFallo: 'Lo bloquea.' },
+        { id: 'opcion_cambio_pierna', texto: 'Cambiar de pierna', correcta: false, resultado: 'pierde', descripcionFallo: 'Reid anticipa.' },
+        { id: 'opcion_centro', texto: 'Centrar al área', correcta: false, resultado: 'pierde', descripcionFallo: 'Despejado.' }
       ]
     },
     // FASE 4: BUTCHER
@@ -89,13 +104,18 @@ export const golDelSiglo: Gol = {
       tipo: 'decision',
       titulo: 'LA ENTRADA BRUTAL',
       descripcion: 'Terry Butcher intenta frenarlo',
-      narrativa: 'Terry Butcher sale con una entrada violenta.',
+      narrativa: 'Butcher sale con una entrada violenta.',
       rival: { nombre: 'Terry Butcher', sprite: 'butcher' },
+      primerPlano: {
+        personaje: 'Terry Butcher',
+        dialogo: 'Imposible derribarlo',
+        spriteCloseUp: '/sprites/maradona_izq.png'
+      },
       opciones: [
-        { id: 'opcion_cambio', texto: 'Cambio de dirección y velocidad', correcta: true, resultado: 'sigue', descripcionExito: 'Maradona lo esquiva con un cambio de ritmo.' },
-        { id: 'opcion_proteger', texto: 'Proteger la pelota con el cuerpo', correcta: false, resultado: 'pierde', descripcionFallo: 'Butcher lo derriba en falta.' },
-        { id: 'opcion_pared', texto: 'Pared con un compañero', correcta: false, resultado: 'pierde', descripcionFallo: 'No hay nadie cerca, la pared falla.' },
-        { id: 'opcion_tacada', texto: 'Intentar una taquito', correcta: false, resultado: 'pierde', descripcionFallo: 'El taquito sale mal.' }
+        { id: 'opcion_cambio', texto: 'Cambio de dirección', correcta: true, resultado: 'sigue', descripcionExito: 'Lo esquiva.' },
+        { id: 'opcion_proteger', texto: 'Proteger la pelota', correcta: false, resultado: 'pierde', descripcionFallo: 'Lo derriban.' },
+        { id: 'opcion_pared', texto: 'Pared', correcta: false, resultado: 'pierde', descripcionFallo: 'Sin nadie cerca.' },
+        { id: 'opcion_tacada', texto: 'Taquito', correcta: false, resultado: 'pierde', descripcionFallo: 'Sale mal.' }
       ]
     },
     // FASE 5: FENWICK
@@ -104,13 +124,18 @@ export const golDelSiglo: Gol = {
       tipo: 'decision',
       titulo: 'EL ÚLTIMO DEFENSOR',
       descripcion: 'Terry Fenwick intercepta',
-      narrativa: 'Terry Fenwick viene de frente.',
+      narrativa: 'Fenwick viene de frente.',
       rival: { nombre: 'Terry Fenwick', sprite: 'fenwick' },
+      primerPlano: {
+        personaje: 'Terry Fenwick',
+        dialogo: 'Me dejó en el camino',
+        spriteCloseUp: '/sprites/maradona_izq.png'
+      },
       opciones: [
-        { id: 'opcion_amague', texto: 'Amague', correcta: true, resultado: 'sigue', descripcionExito: 'Maradona lo pasa con un amague de cuerpo.' },
-        { id: 'opcion_pique', texto: 'Pique al espacio', correcta: false, resultado: 'pierde', descripcionFallo: 'Fenwick lee la jugada y corta el pase.' },
-        { id: 'opcion_potencia', texto: 'Acelerar a fondo', correcta: false, resultado: 'pierde', descripcionFallo: 'La defensa lo encierra entre dos.' },
-        { id: 'opcion_tiro_angulo', texto: 'Disparar al ángulo desde afuera', correcta: false, resultado: 'pierde', descripcionFallo: 'El disparo se va desviado.' }
+        { id: 'opcion_amague', texto: 'Amague', correcta: true, resultado: 'sigue', descripcionExito: 'Lo pasa.' },
+        { id: 'opcion_pique', texto: 'Pique al espacio', correcta: false, resultado: 'pierde', descripcionFallo: 'Corta el pase.' },
+        { id: 'opcion_potencia', texto: 'Acelerar', correcta: false, resultado: 'pierde', descripcionFallo: 'Encierran.' },
+        { id: 'opcion_tiro_angulo', texto: 'Disparar al ángulo', correcta: false, resultado: 'pierde', descripcionFallo: 'Desviado.' }
       ]
     },
     // FASE 6: SHILTON (GOL)
@@ -119,13 +144,18 @@ export const golDelSiglo: Gol = {
       tipo: 'decision',
       titulo: 'FRENTE AL ARQUERO',
       descripcion: 'Peter Shilton achica',
-      narrativa: 'Maradona entra al área grande. El arquero Peter Shilton sale a achicar.',
+      narrativa: 'Maradona entra al área. Shilton sale a achicar.',
       rival: { nombre: 'Peter Shilton', sprite: 'shilton' },
+      primerPlano: {
+        personaje: 'Diego Maradona',
+        dialogo: '¡Gol del siglo!',
+        spriteCloseUp: '/sprites/maradona_izq.png'
+      },
       opciones: [
-        { id: 'opcion_driblar', texto: 'Driblar al arquero', correcta: true, resultado: 'gol', descripcionExito: '¡GOOOOL! Diego lo deja en el suelo y empuja la pelota.' },
-        { id: 'opcion_vaselina', texto: 'Vaselina', correcta: false, resultado: 'pierde', descripcionFallo: 'La vaselina se va alta.' },
-        { id: 'opcion_potencia', texto: 'Disparo fuerte al cuerpo', correcta: false, resultado: 'pierde', descripcionFallo: 'Shilton ataja con el pecho.' },
-        { id: 'opcion_pase_gol', texto: 'Pase a compañero solo', correcta: false, resultado: 'pierde', descripcionFallo: 'El pase es interceptado.' }
+        { id: 'opcion_driblar', texto: 'Driblar al arquero', correcta: true, resultado: 'gol', descripcionExito: '¡GOOOOL!' },
+        { id: 'opcion_vaselina', texto: 'Vaselina', correcta: false, resultado: 'pierde', descripcionFallo: 'Se va alta.' },
+        { id: 'opcion_potencia', texto: 'Disparo fuerte', correcta: false, resultado: 'pierde', descripcionFallo: 'Ataja.' },
+        { id: 'opcion_pase_gol', texto: 'Pase', correcta: false, resultado: 'pierde', descripcionFallo: 'Interceptado.' }
       ]
     }
   ]
