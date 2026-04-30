@@ -166,7 +166,7 @@ export function Game({ onBackToMenu }: GameProps) {
 
   return (
     <div className="h-screen bg-[#0a0c12] flex flex-col" style={{ fontFamily: '"VT323", "Courier New", monospace' }}>
-      {/* Barra superior NES con contraste suave */}
+      {/* Barra superior */}
       <div className="bg-[#1a1c2a] border-b-2 border-[#c0c0c0] px-3 py-2 flex justify-between items-center text-[#e0e0e0] text-[10px] md:text-xs">
         <div className="bg-[#2a2c3a] border border-[#c0c0c0] px-2 py-0.5">FASE {faseActual+1}/{gol.fases.length}</div>
         <div className="bg-[#2a2c3a] border border-[#c0c0c0] px-2 py-0.5">{gol.titulo}</div>
@@ -174,46 +174,41 @@ export function Game({ onBackToMenu }: GameProps) {
         <div className="bg-[#2a2c3a] border border-[#c0c0c0] px-2 py-0.5">{gol.autor.apodo}</div>
       </div>
 
-      {/* Campo (fondo rayado) */}
+      {/* Campo de juego (rayas) */}
       <div className="relative flex-grow overflow-hidden">
         <div className="absolute inset-0" style={{
           backgroundImage: `repeating-linear-gradient(90deg, #2a6b2f 0px, #2a6b2f 32px, #3e8643 32px, #3e8643 64px)`
         }} />
         <div className="absolute inset-0 bg-gradient-to-b from-black/0 to-black/30 pointer-events-none" />
 
-        {/* Sprite rival */}
+        {/* Rival */}
         {!mostrarPrimerPlano && estado !== 'victoria' && estado !== 'derrota' && fase.rival && (
           <div className="absolute left-[10%] bottom-[15%] z-10 text-center">
-            <img
-              src={`/sprites/${fase.rival.sprite}.png`}
-              alt={fase.rival.nombre}
-              onError={(e) => { if (!e.currentTarget.src.includes('maradona_izq.png')) e.currentTarget.src = '/sprites/maradona_izq.png'; }}
-              className="w-28 h-28 md:w-36 md:h-36 object-contain pixelated"
-            />
+            <img src={`/sprites/${fase.rival.sprite}.png`} alt={fase.rival.nombre}
+              onError={(e)=>{if(!e.currentTarget.src.includes('maradona_izq.png')) e.currentTarget.src='/sprites/maradona_izq.png';}}
+              className="w-28 h-28 md:w-36 md:h-36 object-contain pixelated" />
             <div className="bg-[#1a1c2a] border border-[#c0c0c0] text-[#e0e0e0] text-[8px] md:text-[10px] px-1 py-0.5 mt-1 inline-block">
               {fase.rival.nombre}
             </div>
           </div>
         )}
 
-        {/* Sprite Maradona */}
+        {/* Maradona */}
         <div className="absolute right-[10%] bottom-[15%] z-10 text-center">
-          <img
-            src="/sprites/maradona_izq.png"
-            alt={gol.autor.nombre}
-            onError={(e) => { if (!e.currentTarget.src.includes('maradona_izq.png')) e.currentTarget.src = '/sprites/maradona_izq.png'; }}
-            className="w-32 h-32 md:w-44 md:h-44 object-contain transition-all duration-300 pixelated"
-          />
+          <img src="/sprites/maradona_izq.png" alt={gol.autor.nombre}
+            onError={(e)=>{if(!e.currentTarget.src.includes('maradona_izq.png')) e.currentTarget.src='/sprites/maradona_izq.png';}}
+            className="w-32 h-32 md:w-44 md:h-44 object-contain pixelated transition-all duration-300" />
           <div className="bg-[#1a1c2a] border border-[#c0c0c0] text-[#e0e0e0] text-[8px] md:text-[10px] px-1 py-0.5 mt-1 inline-block">
             {gol.autor.apodo}
           </div>
         </div>
 
+        {/* Efectos */}
         {animacionExito && <div className="absolute inset-0 bg-green-500/20 animate-pulse pointer-events-none z-20" />}
         {animacionFallo && <div className="absolute inset-0 bg-red-600/20 animate-pulse pointer-events-none z-20" />}
       </div>
 
-      {/* Panel de decisiones NES con contraste ajustado */}
+      {/* Panel inferior */}
       <div className="bg-[#1a1c2a] border-t-2 border-[#c0c0c0] px-3 py-2 flex-shrink-0">
         <div className="max-w-3xl mx-auto">
           {estado === 'decision' && !mostrarPrimerPlano && !esIntroAutomatica && (
@@ -225,12 +220,8 @@ export function Game({ onBackToMenu }: GameProps) {
                 {opcionesMezcladas.map((opcion, idx) => {
                   const letra = String.fromCharCode(65 + idx);
                   return (
-                    <button
-                      key={opcion.id}
-                      onClick={() => handleOptionSelect(opcion)}
-                      disabled={!!opcionSeleccionada}
-                      className="bg-[#0f1120] border border-[#c0c0c0] text-[#d0d0e0] text-left px-2 py-2 hover:bg-[#2a2c3a] active:scale-95 transition-all disabled:opacity-50 flex items-center gap-3 text-[10px] md:text-xs"
-                    >
+                    <button key={opcion.id} onClick={() => handleOptionSelect(opcion)} disabled={!!opcionSeleccionada}
+                      className="bg-[#0f1120] border border-[#c0c0c0] text-[#d0d0e0] text-left px-2 py-2 hover:bg-[#2a2c3a] active:scale-95 transition-all disabled:opacity-50 flex items-center gap-3 text-[10px] md:text-xs">
                       <span className="bg-[#c0c0c0] text-[#0a0c12] font-bold w-6 h-6 flex items-center justify-center border border-[#808080]">
                         {letra}
                       </span>
@@ -239,11 +230,7 @@ export function Game({ onBackToMenu }: GameProps) {
                   );
                 })}
               </div>
-              {mostrarBarra && (
-                <div className="mt-2">
-                  <TimingBar isActive={timingActivo} totalTime={gol.tiempoGlobalMaximo} remainingTime={tiempoRestante} />
-                </div>
-              )}
+              {mostrarBarra && <TimingBar isActive={timingActivo} totalTime={gol.tiempoGlobalMaximo} remainingTime={tiempoRestante} />}
               <div className="text-center text-[#f7d44a] text-[8px] md:text-[10px] mt-2 animate-pulse">
                 ⚡ ELIGE RÁPIDO ⚡
               </div>
@@ -261,14 +248,16 @@ export function Game({ onBackToMenu }: GameProps) {
         </div>
       </div>
 
-      {/* Modal de primer plano adaptado a la paleta */}
+      {/* Modal de primer plano */}
       {mostrarPrimerPlano && infoPrimerPlano && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#0a0c12]/90">
           <div className="bg-[#1a1c2a] border-2 border-[#c0c0c0] p-4 text-center max-w-sm w-full mx-4">
             <img src={infoPrimerPlano.spriteCloseUp} alt={infoPrimerPlano.personaje} className="w-40 h-40 mx-auto object-contain mb-2 pixelated" />
             <div className="text-[#f7d44a] text-sm mb-1">{infoPrimerPlano.personaje}</div>
             <div className="text-[#d0d0e0] text-xs italic">“{infoPrimerPlano.dialogo}”</div>
-            <button onClick={cerrarPrimerPlano} className="mt-3 px-4 py-1 bg-[#c0c0c0] text-[#0a0c12] text-xs border border-[#808080] hover:bg-[#d0d0d0]">CONTINUAR</button>
+            <button onClick={cerrarPrimerPlano} className="mt-3 px-4 py-1 bg-[#c0c0c0] text-[#0a0c12] text-xs border border-[#808080] hover:bg-[#d0d0d0]">
+              CONTINUAR
+            </button>
           </div>
         </div>
       )}
@@ -277,3 +266,4 @@ export function Game({ onBackToMenu }: GameProps) {
       {estado === 'derrota' && <GameOver razon={mensajeResultado} faseAlcanzada={faseActual} totalFases={gol.fases.length} onRetry={handleRetry} onMenu={onBackToMenu} />}
     </div>
   );
+}
