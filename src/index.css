@@ -135,3 +135,8 @@
   background: #6CACE4;
   color: white;
 }
+.pixelated {
+  image-rendering: crisp-edges;
+  image-rendering: pixelated;
+  image-rendering: pixelated; /* duplicado para más compatibilidad */
+}
