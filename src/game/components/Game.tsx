@@ -1,7 +1,6 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import type { Gol, Opcion, Fase } from '../types';
 import { golDelSiglo } from '../data/golDelSiglo';
-import { TimingBar } from './TimingBar';
 import { GoalCelebration } from './GoalCelebration';
 import { GameOver } from './GameOver';
 
@@ -162,100 +161,111 @@ export function Game({ onBackToMenu }: GameProps) {
     }
   };
 
-  const mostrarBarra = timerIniciado && estado === 'decision' && !esIntroAutomatica;
+  const segundos = Math.ceil(tiempoRestante / 1000);
+
+  // Placeholder narrativo (repetido 8 veces como en tu collage)
+  const textoPlaceholder = narrativaCorta || "1, hacia la derecha, donde está Diego Maradona";
 
   return (
-    <div className="h-screen bg-[#0a0c12] flex flex-col" style={{ fontFamily: '"VT323", "Courier New", monospace' }}>
-      {/* Barra superior */}
-      <div className="bg-[#1a1c2a] border-b-2 border-[#c0c0c0] px-3 py-2 flex justify-between items-center text-[#e0e0e0] text-[10px] md:text-xs">
-        <div className="bg-[#2a2c3a] border border-[#c0c0c0] px-2 py-0.5">FASE {faseActual+1}/{gol.fases.length}</div>
-        <div className="bg-[#2a2c3a] border border-[#c0c0c0] px-2 py-0.5">{gol.titulo}</div>
-        <div className="bg-[#2a2c3a] border border-[#c0c0c0] px-2 py-0.5">⏱ {Math.ceil(tiempoRestante/1000)}s</div>
-        <div className="bg-[#2a2c3a] border border-[#c0c0c0] px-2 py-0.5">{gol.autor.apodo}</div>
-      </div>
-
-      {/* Campo de juego (rayas) */}
-      <div className="relative flex-grow overflow-hidden">
-        <div className="absolute inset-0" style={{
-          backgroundImage: `repeating-linear-gradient(90deg, #2a6b2f 0px, #2a6b2f 32px, #3e8643 32px, #3e8643 64px)`
-        }} />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/0 to-black/30 pointer-events-none" />
-
-        {/* Rival */}
-        {!mostrarPrimerPlano && estado !== 'victoria' && estado !== 'derrota' && fase.rival && (
-          <div className="absolute left-[10%] bottom-[15%] z-10 text-center">
-            <img src={`/sprites/${fase.rival.sprite}.png`} alt={fase.rival.nombre}
-              onError={(e)=>{if(!e.currentTarget.src.includes('maradona_izq.png')) e.currentTarget.src='/sprites/maradona_izq.png';}}
-              className="w-28 h-28 md:w-36 md:h-36 object-contain pixelated" />
-            <div className="bg-[#1a1c2a] border border-[#c0c0c0] text-[#e0e0e0] text-[8px] md:text-[10px] px-1 py-0.5 mt-1 inline-block">
-              {fase.rival.nombre}
-            </div>
+    <div className="h-screen bg-[#0a0c12] font-['VT323','Courier New',monospace]">
+      {/* DOS COLUMNAS: izquierda (texto) y derecha (sprites, timer, opciones) */}
+      <div className="flex h-full">
+        {/* COLUMNA IZQUIERDA: bloque de diálogo */}
+        <div className="w-1/2 bg-[#0f1120] border-r-2 border-[#c0c0c0] flex flex-col p-4">
+          {/* Fase y nombre del rival arriba */}
+          <div className="bg-[#1a1c2a] border border-[#c0c0c0] px-3 py-1 mb-4 flex justify-between text-[#e0e0e0] text-sm">
+            <span>FASE {faseActual+1}/{gol.fases.length}</span>
+            <span>{fase.rival?.nombre || 'ARGENTINA'}</span>
           </div>
-        )}
-
-        {/* Maradona */}
-        <div className="absolute right-[10%] bottom-[15%] z-10 text-center">
-          <img src="/sprites/maradona_izq.png" alt={gol.autor.nombre}
-            onError={(e)=>{if(!e.currentTarget.src.includes('maradona_izq.png')) e.currentTarget.src='/sprites/maradona_izq.png';}}
-            className="w-32 h-32 md:w-44 md:h-44 object-contain pixelated transition-all duration-300" />
-          <div className="bg-[#1a1c2a] border border-[#c0c0c0] text-[#e0e0e0] text-[8px] md:text-[10px] px-1 py-0.5 mt-1 inline-block">
-            {gol.autor.apodo}
+          {/* Texto narrativo (repetido para simular el collage) */}
+          <div className="flex-1 overflow-y-auto text-[#d0d0e0] text-sm leading-relaxed space-y-2">
+            {Array(10).fill(textoPlaceholder).map((t, i) => (
+              <p key={i}>{t}</p>
+            ))}
           </div>
         </div>
 
-        {/* Efectos */}
-        {animacionExito && <div className="absolute inset-0 bg-green-500/20 animate-pulse pointer-events-none z-20" />}
-        {animacionFallo && <div className="absolute inset-0 bg-red-600/20 animate-pulse pointer-events-none z-20" />}
-      </div>
+        {/* COLUMNA DERECHA: recuadro de sprites, timer, opciones */}
+        <div className="w-1/2 bg-[#0f1120] p-4 flex flex-col">
+          {/* Recuadro de sprites */}
+          <div className="bg-[#1a1c2a] border-2 border-[#c0c0c0] flex-grow flex items-center justify-center relative min-h-[200px]">
+            {!mostrarPrimerPlano && estado !== 'victoria' && estado !== 'derrota' && (
+              <div className="flex items-center justify-center gap-8">
+                {fase.rival && (
+                  <div className="text-center">
+                    <img
+                      src={`/sprites/${fase.rival.sprite}.png`}
+                      alt={fase.rival.nombre}
+                      onError={(e) => { if (!e.currentTarget.src.includes('maradona_izq.png')) e.currentTarget.src = '/sprites/maradona_izq.png'; }}
+                      className="w-28 h-28 md:w-36 md:h-36 object-contain pixelated"
+                    />
+                    <div className="bg-black border border-[#c0c0c0] text-white text-xs px-1 mt-1">{fase.rival.nombre}</div>
+                  </div>
+                )}
+                <div className="text-center">
+                  <img
+                    src="/sprites/maradona_izq.png"
+                    alt={gol.autor.nombre}
+                    onError={(e) => { if (!e.currentTarget.src.includes('maradona_izq.png')) e.currentTarget.src = '/sprites/maradona_izq.png'; }}
+                    className="w-32 h-32 md:w-44 md:h-44 object-contain pixelated"
+                  />
+                  <div className="bg-black border border-[#c0c0c0] text-white text-xs px-1 mt-1">{gol.autor.apodo}</div>
+                </div>
+              </div>
+            )}
+            {animacionExito && <div className="absolute inset-0 bg-green-500/20 animate-pulse pointer-events-none" />}
+            {animacionFallo && <div className="absolute inset-0 bg-red-600/20 animate-pulse pointer-events-none" />}
+          </div>
 
-      {/* Panel inferior */}
-      <div className="bg-[#1a1c2a] border-t-2 border-[#c0c0c0] px-3 py-2 flex-shrink-0">
-        <div className="max-w-3xl mx-auto">
+          {/* Timer */}
+          <div className="mt-4 text-center">
+            <div className="text-4xl md:text-5xl text-white font-bold">{segundos}s</div>
+            <div className="text-[#f7d44a] text-xl md:text-2xl animate-pulse">¡DECIDE!</div>
+          </div>
+
+          {/* Opciones */}
           {estado === 'decision' && !mostrarPrimerPlano && !esIntroAutomatica && (
-            <>
-              <div className="bg-[#0f1120] border border-[#c0c0c0] text-[#d0d0e0] text-[10px] md:text-xs p-2 mb-2 text-center">
-                {narrativaCorta}
-              </div>
-              <div className="grid grid-cols-2 gap-3 my-2">
-                {opcionesMezcladas.map((opcion, idx) => {
-                  const letra = String.fromCharCode(65 + idx);
-                  return (
-                    <button key={opcion.id} onClick={() => handleOptionSelect(opcion)} disabled={!!opcionSeleccionada}
-                      className="bg-[#0f1120] border border-[#c0c0c0] text-[#d0d0e0] text-left px-2 py-2 hover:bg-[#2a2c3a] active:scale-95 transition-all disabled:opacity-50 flex items-center gap-3 text-[10px] md:text-xs">
-                      <span className="bg-[#c0c0c0] text-[#0a0c12] font-bold w-6 h-6 flex items-center justify-center border border-[#808080]">
-                        {letra}
-                      </span>
-                      <span>{opcion.texto}</span>
-                    </button>
-                  );
-                })}
-              </div>
-              {mostrarBarra && <TimingBar isActive={timingActivo} totalTime={gol.tiempoGlobalMaximo} remainingTime={tiempoRestante} />}
-              <div className="text-center text-[#f7d44a] text-[8px] md:text-[10px] mt-2 animate-pulse">
-                ⚡ ELIGE RÁPIDO ⚡
-              </div>
-            </>
+            <div className="mt-4 grid grid-cols-2 gap-3">
+              {opcionesMezcladas.map((opcion, idx) => {
+                const letra = String.fromCharCode(65 + idx);
+                return (
+                  <button
+                    key={opcion.id}
+                    onClick={() => handleOptionSelect(opcion)}
+                    disabled={!!opcionSeleccionada}
+                    className="bg-[#1a1c2a] border-2 border-[#c0c0c0] text-[#d0d0e0] text-left px-3 py-2 hover:bg-[#2a2c3a] active:scale-95 transition-all disabled:opacity-50 flex items-center gap-3 text-sm"
+                  >
+                    <span className="bg-[#c0c0c0] text-[#0a0c12] font-bold w-6 h-6 flex items-center justify-center">
+                      {letra}
+                    </span>
+                    <span>{opcion.texto}</span>
+                  </button>
+                );
+              })}
+            </div>
           )}
+
+          {/* Resultado */}
           {estado === 'resultado' && !mostrarPrimerPlano && (
-            <div className="bg-[#0f1120] border-2 border-[#c0c0c0] p-3 text-center">
-              <div className={`text-sm md:text-base font-bold ${opcionSeleccionada?.correcta ? 'text-[#80e0a0]' : 'text-[#e08080]'}`}>
+            <div className="mt-4 bg-[#1a1c2a] border-2 border-[#c0c0c0] p-3 text-center">
+              <div className={`font-bold ${opcionSeleccionada?.correcta ? 'text-[#80e0a0]' : 'text-[#e08080]'}`}>
                 {opcionSeleccionada?.correcta ? '✓ ¡BIEN HECHO!' : '✗ ¡FALLASTE!'}
               </div>
-              <div className="text-[#d0d0e0] text-[10px] md:text-xs mt-1">{mensajeResultado}</div>
-              {mensajeDialogo && <div className="text-[#f7d44a] text-[8px] mt-1 italic">“{mensajeDialogo}”</div>}
+              <div className="text-[#d0d0e0] text-sm mt-1">{mensajeResultado}</div>
+              {mensajeDialogo && <div className="text-[#f7d44a] text-xs mt-1 italic">“{mensajeDialogo}”</div>}
             </div>
           )}
         </div>
       </div>
 
-      {/* Modal de primer plano */}
+      {/* Modal primer plano (igual) */}
       {mostrarPrimerPlano && infoPrimerPlano && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#0a0c12]/90">
           <div className="bg-[#1a1c2a] border-2 border-[#c0c0c0] p-4 text-center max-w-sm w-full mx-4">
             <img src={infoPrimerPlano.spriteCloseUp} alt={infoPrimerPlano.personaje} className="w-40 h-40 mx-auto object-contain mb-2 pixelated" />
-            <div className="text-[#f7d44a] text-sm mb-1">{infoPrimerPlano.personaje}</div>
-            <div className="text-[#d0d0e0] text-xs italic">“{infoPrimerPlano.dialogo}”</div>
-            <button onClick={cerrarPrimerPlano} className="mt-3 px-4 py-1 bg-[#c0c0c0] text-[#0a0c12] text-xs border border-[#808080] hover:bg-[#d0d0d0]">
+            <div className="text-[#f7d44a] text-lg mb-1">{infoPrimerPlano.personaje}</div>
+            <div className="text-[#d0d0e0] text-sm italic">“{infoPrimerPlano.dialogo}”</div>
+            <button onClick={cerrarPrimerPlano} className="mt-3 px-4 py-1 bg-[#c0c0c0] text-[#0a0c12] text-sm border border-[#808080] hover:bg-[#d0d0d0]">
               CONTINUAR
             </button>
           </div>
