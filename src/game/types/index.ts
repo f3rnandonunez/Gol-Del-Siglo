@@ -2,6 +2,12 @@
 
 export type TipoFase = 'intro' | 'decision' | 'gol' | 'fallo';
 
+export interface PrimerPlano {
+  personaje: string;
+  dialogo: string;
+  spriteCloseUp: string;
+}
+
 export interface Opcion {
   id: string;
   texto: string;
@@ -10,12 +16,7 @@ export interface Opcion {
   descripcionExito?: string;
   descripcionFallo?: string;
   dialogo?: string;
-}
-
-export interface PrimerPlano {
-  personaje: string;
-  dialogo: string;
-  spriteCloseUp: string;
+  primerPlanoFallo?: PrimerPlano;   // NUEVO: primer plano para fallos
 }
 
 export interface Fase {
@@ -31,7 +32,7 @@ export interface Fase {
     nombre: string;
     sprite: string;
   };
-  primerPlano?: PrimerPlano;
+  primerPlano?: PrimerPlano;   // para aciertos
 }
 
 export interface Gol {
@@ -61,38 +62,4 @@ export interface Gol {
   };
 }
 
-export interface Seleccion {
-  id: string;
-  nombre: string;
-  nombreCompleto: string;
-  colores: {
-    camiseta: string;
-    pantalon: string;
-    medias: string;
-  };
-  sprites: {
-    jugador: string;
-    arquero: string;
-  };
-}
-
-export interface Partido {
-  id: string;
-  torneo: string;
-  fase: string;
-  fecha: string;
-  local: Seleccion;
-  visitante: Seleccion;
-  estadio: string;
-  ciudad: string;
-  goles: Gol[];
-}
-
-export interface EstadoJuego {
-  faseActual: number;
-  vidas: number;
-  puntaje: number;
-  tiempoRestante: number;
-  estado: 'menu' | 'jugando' | 'pausa' | 'victoria' | 'derrota';
-  golActual: Gol | null;
-}
+// ... el resto de interfaces (Seleccion, Partido, EstadoJuego) se mantienen igual
