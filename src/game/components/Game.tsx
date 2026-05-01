@@ -116,7 +116,7 @@ export function Game({ onBackToMenu }: GameProps) {
       .find(Boolean) || fase.narrativa;
 
   return (
-    <div className="h-screen flex flex-col bg-black overflow-hidden">
+    <div className="h-screen flex flex-col bg-[#020202] overflow-hidden">
       <div className="relative flex-[3] overflow-hidden">
         <div
           className="absolute inset-0"
@@ -128,10 +128,10 @@ export function Game({ onBackToMenu }: GameProps) {
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/45" />
 
-        <div className="absolute top-0 left-0 right-0 z-20 bg-black/55 border-b-2 border-white/60 px-4 py-2">
+        <div className="absolute top-0 left-0 right-0 z-20 bg-[#b31e00]/90 border-b-4 border-yellow-400 px-4 py-2 shadow-[0_0_0_2px_#4b0e00_inset]">
           <div className="flex justify-between items-center text-white">
             <div>
-              <h1 className="text-sm md:text-base text-yellow-300" style={{ fontFamily: '"Press Start 2P", monospace' }}>
+              <h1 className="text-sm md:text-base text-yellow-200" style={{ fontFamily: '"Press Start 2P", monospace' }}>
                 {gol.titulo}
               </h1>
               <p className="text-[10px] md:text-xs text-gray-300 mt-1" style={{ fontFamily: '"Press Start 2P", monospace' }}>
@@ -196,23 +196,28 @@ export function Game({ onBackToMenu }: GameProps) {
         </div>
       </div>
 
-      <div className="flex-[1] bg-black/95 border-t-4 border-white px-3 py-3 md:px-4 md:py-4 overflow-y-auto">
-        <div className="w-full max-w-4xl mx-auto space-y-3">
-          <NarrativeDisplay texto={`${narrativaCorta}.`} titulo={fase.titulo} />
+      <div className="flex-[1] bg-black border-t-4 border-yellow-500 px-3 py-3 md:px-5 md:py-5 overflow-y-auto">
+        <div className="w-full max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-[1.1fr_1fr] gap-4 items-start">
+          <NarrativeDisplay texto={`${narrativaCorta}.`} titulo={`Fase ${faseActual + 1} / ${gol.fases.length}`} />
 
           {estado === 'decision' && spritesListos && (
             <div className="space-y-3">
-              <TimingBar
-                isActive={timingActivo}
-                totalTime={gol.tiempoGlobalMaximo}
-                remainingTime={tiempoRestante}
-              />
+              <div className="px-2 md:px-4">
+                <TimingBar
+                  isActive={timingActivo}
+                  totalTime={gol.tiempoGlobalMaximo}
+                  remainingTime={tiempoRestante}
+                />
+              </div>
               <DecisionOptions
                 opciones={opcionesMezcladas}
                 onSelect={handleOptionSelect}
                 disabled={!!opcionSeleccionada}
                 isTimingActive={timingActivo}
               />
+              <p className="text-center text-yellow-400 text-lg" style={{ fontFamily: '"Press Start 2P", monospace', textShadow: '2px 2px 0 #000' }}>
+                ¡Elige rápido!
+              </p>
             </div>
           )}
 
